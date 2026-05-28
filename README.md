@@ -1,6 +1,6 @@
 # Probing-VLM-VGM
 
-[![Paper](https://img.shields.io/badge/Paper-arXiv%3A2605.28132-b31b1b?logo=arxiv&logoColor=white)](https://arxiv.org/pdf/2605.28132)
+[![Paper](https://img.shields.io/badge/Paper-arXiv%3A2605.28132-b31b1b?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2605.28132)
 
 Official code for **"Which Pretraining Paradigm Better Serves Spatial Intelligence? An Empirical Comparison of Vision-Language and Video Generation Models."**
 
@@ -18,7 +18,6 @@ Our experiments show a clear complementarity: **VLMs are stronger at semantic an
 probing_vlm_vgm/        # Probe models, datasets, losses, metrics, and training entry point
 configs/                # Hydra configs for semantic tagging, instance grouping, and 3D geometry
 features/               # Frozen feature extraction wrappers for VLMs and VGMs
-scripts/                # Evaluation and result-parsing utilities
 data/                   # User-provided datasets and extracted features (ignored by git)
 ckpt/                   # User-provided model checkpoints (ignored by git)
 ```
@@ -30,8 +29,7 @@ conda create -n probing-vlm-vgm python=3.11 cmake=3.14.0 -y
 conda activate probing-vlm-vgm
 
 # Install PyTorch. Please adjust the CUDA version to your system.
-conda install pytorch torchvision torchaudio pytorch-cuda=12.4 \
-  nvidia/label/cuda-12.4.0::cuda-toolkit -c pytorch -c nvidia
+pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0
 
 # Install PyTorch3D. This can take a while.
 pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable" --no-build-isolation
@@ -48,27 +46,8 @@ export PROJECT_ROOT=/path/to/Probing-VLM-VGM
 python -m probing_vlm_vgm.train --help
 ```
 
-<details>
-<summary>Installation troubleshooting</summary>
-
-If PyTorch3D cannot find CUDA headers, set `CUDA_HOME` before installation:
-
-```bash
-export CUDA_HOME=/usr/local/cuda-12.4
-pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable" --no-build-isolation
-```
-
-If importing PyTorch fails with an MKL-related error such as `iJIT_NotifyEvent`, try:
-
-```bash
-conda install "mkl<2024.1" "intel-openmp<2024.1" -c conda-forge -y
-```
-
-</details>
 
 ## 📚 Data Preparation
-
-We do **not** redistribute raw datasets, processed datasets, frozen features, or model checkpoints. Please follow the original dataset/model licenses and place files under the expected local directories.
 
 ### ScanNet
 
@@ -97,7 +76,7 @@ data/DL3DV/
 
 The geometry supervision follows the paper setup: VGGT-generated point maps, depth maps, camera poses, and confidence maps are used as probe targets.
 
-## 🧊 Frozen Feature Extraction
+## ❄️ Frozen Feature Extraction
 
 The probe is trained on frozen intermediate features. We provide feature extraction wrappers under `features/`.
 
@@ -183,26 +162,7 @@ python -m probing_vlm_vgm.train \
 
 The fusion baseline normalizes frozen features from each model and concatenates them along the channel dimension before feeding them to the same probe.
 
-## 📊 Results and Logs
 
-Training logs and checkpoints are written to Hydra/W&B output directories under `logs/` by default. To parse local W&B logs into CSV files:
-
-```bash
-python scripts/parse_results.py \
-  --groups dl3dv,scannet,scannet-tagging \
-  --runs wan14b,qwen3vl \
-  --metrics "val/*"
-```
-
-For evaluation-only runs from a checkpoint:
-
-```bash
-python -m probing_vlm_vgm.train \
-  experiment=dl3dv/wan-14b \
-  job_name=wan14b_eval \
-  train=false \
-  test=true \
-  ckpt_path=/path/to/checkpoints/last.ckpt
 ```
 
 ## 🧾 Citation
@@ -210,11 +170,14 @@ python -m probing_vlm_vgm.train \
 If you find this project useful, please cite:
 
 ```bibtex
-@article{shen2026probingvlmvgm,
-  title   = {Which Pretraining Paradigm Better Serves Spatial Intelligence? An Empirical Comparison of Vision-Language and Video Generation Models},
-  author  = {Shen, Haozhan and Zhao, Tiancheng and Zhao, Kangjia and Yin, Jianwei},
-  journal = {arXiv preprint arXiv:2605.28132},
-  year    = {2026}
+@misc{shen2026probingvlmvgm,
+      title={Which Pretraining Paradigm Better Serves Spatial Intelligence? An Empirical Comparison of Vision-Language and Video Generation Models}, 
+      author={Haozhan Shen and Tiancheng Zhao and Kangjia Zhao and Jianwei Yin},
+      year={2026},
+      eprint={2605.28132},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2605.28132}, 
 }
 ```
 

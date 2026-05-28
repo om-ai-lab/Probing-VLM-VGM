@@ -12,6 +12,8 @@ This repository provides a unified frozen-feature probing framework for comparin
 
 Our experiments show a clear complementarity: **VLMs are stronger at semantic and object-centric understanding**, while **VGMs provide more accessible dense geometry and camera-motion signals**. A simple feature-level fusion of VLM and VGM representations already improves both sides, suggesting a promising direction for stronger spatial-intelligence backbones.
 
+![Overview](assets/results.png)
+
 ## 📦 Repository Structure
 
 ```text

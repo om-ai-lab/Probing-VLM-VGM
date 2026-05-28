@@ -106,7 +106,6 @@ python -m features.run_scannet \
 
 Different feature extractors may require different checkpoint paths, input resolutions, or layer/timestep choices. See the docstring at the top of each `features/*/extract_features.py` file for model-specific examples.
 
-> Note: Some backends, such as OpenSora and V-JEPA, require external code or checkpoints. We keep lightweight wrappers in this repository, but large vendored backends and checkpoints should be installed or downloaded separately.
 
 ## 🚀 Training and Evaluation
 

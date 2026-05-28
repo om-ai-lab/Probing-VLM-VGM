@@ -25,7 +25,7 @@ ckpt/                   # User-provided model checkpoints (ignored by git)
 ## 🛠️ Installation
 
 ```bash
-conda create -n probing-vlm-vgm python=3.11 cmake=3.14.0 -y
+conda create -n probing-vlm-vgm python=3.11 -y
 conda activate probing-vlm-vgm
 
 # Install PyTorch. Please adjust the CUDA version to your system.
@@ -83,7 +83,7 @@ The probe is trained on frozen intermediate features. We provide feature extract
 Supported model families include:
 
 - 🎥 **VGMs**: WAN, CogVideoX, OpenSora, Aether
-- 🖼️ **VLMs / visual models**: InternVL, Qwen2.5-VL, Qwen3-VL, VideoLLaMA3, DINOv2, V-JEPA, and related variants
+- 🖼️ **VLMs**: InternVL3, InternVL3.5, Qwen2.5-VL, Qwen3-VL
 
 Example commands:
 
@@ -163,7 +163,7 @@ python -m probing_vlm_vgm.train \
 The fusion baseline normalizes frozen features from each model and concatenates them along the channel dimension before feeding them to the same probe.
 
 
-```
+
 
 ## 🧾 Citation
 

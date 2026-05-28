@@ -1,0 +1,23 @@
+defaults:
+  - ddp
+
+# Interactive / non-SLURM runs — THE GLOBAL DEFAULT (set in train.yaml).
+#
+# The upstream repo targets a SLURM cluster: configs/trainer/default.yaml
+# hardcodes a SLURMEnvironment plugin, and the original global default was
+# `trainer: ddp`. Running `python -m probing_vlm_vgm.train` directly in a shell
+# then crashed in the accelerator connector with `KeyError('SLURM_NODEID')`
+# because the SLURM env vars aren't set outside an srun/sbatch allocation.
+#
+# This preset drops that plugin and falls back to Lightning's auto
+# strategy. It is wired as the global default in configs/train.yaml since
+# this checkout is run interactively, not on SLURM.
+#
+#     python -m probing_vlm_vgm.train experiment=scannet_tagging/wan ...   # uses this
+#
+# For SLURM cluster runs, switch back explicitly:
+#
+#     python -m probing_vlm_vgm.train experiment=... trainer=ddp
+plugins: []
+strategy: auto
+check_val_every_n_epoch: 1

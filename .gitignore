@@ -1,0 +1,78 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+env/
+venv/
+.venv/
+.env
+
+# PyTorch
+*.pt
+*.pth
+
+# Distribution
+build/
+dist/
+
+# Logs
+*.log
+nohup.out
+
+# Egg-info
+*.egg-info/
+
+# Tests and local debugging utilities
+test/
+
+# IDE / tooling
+.vscode/
+.claude/
+.github/
+.editorconfig
+
+# temporary files
+probing_vlm_vgm/vggt/tmp**
+
+# Data
+data/
+
+# Certificates
+certificate.pem
+
+# Output
+logs/
+logs-old/
+outputs/
+output/
+debug_outputs/
+wandb/
+gradio_tmp_dir/
+temp**
+demo_outputs/
+
+# Checkpoints
+**tar
+**ckpt
+ckpt/
+checkpoints/
+*.sft
+*.safetensors
+*.whl
+/*.pdf
+*.zip
+
+# Large or vendored feature backends kept local. Keep lightweight wrappers.
+features/opensora/*
+!features/opensora/
+!features/opensora/extract_features.py
+!features/opensora/opensora_features.py
+features/vjepa/*
+!features/vjepa/
+!features/vjepa/extract_features.py
+!features/vjepa/vjepa.py
+!features/vjepa/vjepautils.py
+Depth-Anything-3/
+cambrian-s/
+scripts/

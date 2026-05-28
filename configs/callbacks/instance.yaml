@@ -1,0 +1,40 @@
+# Callback preset for Exp-C (instance probe).
+#
+# Identical to configs/callbacks/default.yaml except the checkpoint is written
+# to a static `best.ckpt` (instead of `epoch_{epoch:03d}.ckpt`) so eval scripts
+# can load it by a fixed path. monitor stays `val/loss` (mode=min): the
+# instance probe's validation_step only computes the MVC loss — T-mIoU / T-SR
+# are computed in test_step (HDBSCAN is too heavy for every val epoch), so
+# val/loss is the only training-time signal available to rank checkpoints.
+#
+# Selected per-experiment via `- override /callbacks: instance` in
+# configs/experiment/scannet/*.
+defaults:
+  - model_checkpoint
+  - early_stopping
+  - model_summary
+  - rich_progress_bar
+  - _self_
+
+model_checkpoint:
+  dirpath: ${paths.output_dir}/checkpoints
+  # Static filename → the best-val/loss ckpt is always at
+  # <run>/checkpoints/best.ckpt (Lightning 2.6.1 overwrites in place, no -v1
+  # suffix). eval_scannet.sh loads best.ckpt directly.
+  filename: "best"
+  monitor: "val/loss"
+  mode: "min"
+  save_top_k: 1
+  save_last: True
+  auto_insert_metric_name: False
+  # Evaluate the monitor every epoch. The base model_checkpoint.yaml sets
+  # every_n_epochs=10, which makes best-ckpt tracking coarse.
+  every_n_epochs: 1
+
+early_stopping:
+  monitor: "train/loss"
+  patience: 100
+  mode: "min"
+
+model_summary:
+  max_depth: -1

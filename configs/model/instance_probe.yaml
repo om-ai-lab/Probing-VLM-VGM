@@ -1,0 +1,82 @@
+_target_: probing_vlm_vgm.models.instance_probe_module.InstanceProbeLitModule
+
+output_path: ${paths.output_dir}
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 1e-3        # larger than 3D probe: tiny head, simple objective
+  betas: [0.9, 0.95]
+  weight_decay: 0.01
+
+scheduler:
+  _target_: pl_bolts.optimizers.lr_scheduler.LinearWarmupCosineAnnealingLR
+  _partial_: true
+  warmup_epochs: 2
+  max_epochs: ${trainer.max_epochs}
+  eta_min: 1e-06
+
+# Unified probe — research_plan v3 §6: shared BackbonePA + active_heads=["instance"].
+# `video_channels` must match the VFM feature dim and is overridden per-experiment.
+# `instance_out_channels` is the post-head embedding dim used by MVC + HDBSCAN.
+#
+# For Abl-1 (backbone_depth sweep), override `model.probe.backbone_depth` on the
+# CLI: e.g. `model.probe.backbone_depth=0` for the read-out-purity baseline.
+probe:
+  _target_: probing_vlm_vgm.models.components.probe_pixalign.ProbeModelPA
+  video_channels: 1536
+  embed_dim: 1024
+  backbone_depth: 8
+  backbone_dropout: 0.1   # proj + MLP dropout in every backbone block (anti-overfit)
+  gradient_checkpointing: true
+  active_heads: ["instance"]
+  instance_mlp: false
+  instance_out_channels: 32
+
+# MVC loss config (per-step pixel sampling; margin on L2 distance, feats are unit-norm).
+# 4096 (vs IGGT's 1024 default) — denser pair-wise supervision per step;
+# helps the linear 1x1 head break the ~0.6 plateau seen at 1024.
+mvc_num_samples: 2048
+mvc_margin: 1.0
+mvc_lambda_pull: 1.0
+mvc_lambda_push: 1.0
+
+# HDBSCAN eval config
+hdbscan_min_cluster_size: 30
+hdbscan_min_samples: 5
+# PCA-reduce features to this dim before HDBSCAN. The head outputs D=32 but
+# the kd-tree inside HDBSCAN degrades above D≈16, so projecting to 8 gives
+# ~2x wall-clock speedup at <0.002 t_miou drop (verified by
+# scripts/compare_hdbscan_pca.py on Qwen3VL + OpenSora over 50 val scenes).
+# Set to null to disable and cluster at native D.
+hdbscan_pca_dim: 8
+eval_iou_thresh: 0.5
+eval_ignore_ids: [0]
+weight_metrics_by_instances: false
+
+# Parallel eval: dispatch per-scene HDBSCAN+T-mIoU to a persistent
+# ProcessPoolExecutor (forkserver). 0 = sync (current behaviour); 16 is a
+# sweet spot for a 96-core box with 8 dataloader workers. Final aggregate
+# metrics are deterministic and identical to the sync path within fp
+# rounding (verified by scripts/test_parallel_eval.py).
+num_eval_workers: 16
+
+# Test-time per-scene visualization. Empty list = disabled (zero overhead).
+# Renders | RGB | GT mask | Pred cluster | PCA | for each scene_id listed.
+# Requires data.train_datasets/validation_datasets to be built with
+# load_images=True so RGB frames are present in the batch.
+#
+# Two ways to choose scenes:
+#   1. Explicit: set viz_scene_ids to a list of scene_id strings (deterministic).
+#   2. Random: leave viz_scene_ids empty, set viz_random_n > 0 + viz_random_seed.
+#      With a fixed seed the same N scenes are picked across every ckpt eval,
+#      giving you cross-VFM/cross-layer panels that line up out of the box.
+viz_scene_ids: []
+viz_random_n: 0
+viz_random_seed: 0
+viz_output_subdir: viz/test
+viz_max_frames: 8
+viz_match_pred_to_gt: true
+viz_save_individual: false
+
+compile: false

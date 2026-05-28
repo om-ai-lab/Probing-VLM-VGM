@@ -1,0 +1,67 @@
+# @package _global_
+
+defaults:
+  - override /model: probe
+
+seed: 42
+tags: ["train", "dl3dv", "feature-fusion"]
+task_name: dl3dv
+job_name: default
+autoresume: true
+
+gt_num_frames: 4
+batch_size: 10
+
+paths:
+  run_folder_name: fusion_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}
+
+# Offline concat of WAN-14B-T2V layer20 and Qwen3VL-8B layer22.
+# Feature shape: (20, Hq, Wq, 5120 + 4096) = (20, Hq, Wq, 9216).
+feat_postfix: _layer22
+
+data:
+  data_module:
+    train_datasets:
+    - VideoProbeDataset(root='data/DL3DV/DL3DV-processed', root_vfm='${data.feat_root}', subset='all', split='train', vfm_name='wan14b-qwen3vl-concat', feat_postfix='${feat_postfix}', feat_pixalign=True, num_views=${gt_num_frames}, min_view_interval=5, context_len=76, query_idx_divisor=4)
+    validation_datasets:
+    - VideoProbeDataset(root='data/DL3DV/DL3DV-processed', root_vfm='${data.feat_root}', subset='all', split='val', vfm_name='wan14b-qwen3vl-concat', feat_postfix='${feat_postfix}', feat_pixalign=True, num_views=${gt_num_frames}, min_view_interval=5, context_len=76, query_idx_divisor=4, seed=0)
+    batch_size_per_device: ${batch_size}
+    batch_size_per_device_val: ${batch_size}
+    num_workers: 8
+    num_workers_val: 8
+
+logger:
+  wandb:
+    name: fusion_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}
+    group: ${task_name}
+
+model:
+  probe_type: pixalign
+  probe:
+    _target_: probing_vlm_vgm.models.components.probe_pixalign.ProbeModelPA
+    embed_dim: 1024
+    video_channels: 9216
+    backbone_depth: 4
+    dpt_intermediate_layer_idx: [0, 1, 2, 3]
+    gradient_checkpointing: true
+    active_heads: ["depth", "point", "camera"]
+  val_viz_freq: 5
+  train_eval_freq: 5000
+  save_pointcloud: false
+
+  loss_weights:
+    pmap: 1.0
+    dmap: 1.0
+    pmap_grad: 0.0
+    dmap_grad: 0.0
+    camera: 1.0
+
+  normalize_pred: true
+  normalize_gt: true
+  soft_bg_weight: 0.0
+  cmap_power: 1.0
+
+trainer:
+  devices: auto
+  max_epochs: 60
+  precision: bf16-mixed

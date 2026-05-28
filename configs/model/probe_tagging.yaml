@@ -1,0 +1,81 @@
+_target_: probing_vlm_vgm.models.tagging_probe_module.TaggingProbeLitModule
+
+output_path: ${paths.output_dir}
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  # lr 1e-3 → 3e-4: at 1e-3 the post-warmup step (compounded by
+  # backbone_dropout=0.3 noise) launched logits into saturation, where ASL's
+  # clip term used to zero out the escape gradient. Lower lr keeps the model
+  # out of that regime in the first place.
+  lr: 3e-4
+  betas: [0.9, 0.95]
+  weight_decay: 0.05   # raised from 0.01 — anti-overfit; ScanNet train is only ~1.2k scenes
+
+scheduler:
+  _target_: pl_bolts.optimizers.lr_scheduler.LinearWarmupCosineAnnealingLR
+  _partial_: true
+  warmup_epochs: 2
+  max_epochs: ${trainer.max_epochs}
+  eta_min: 1e-06
+
+# Unified probe — research_plan v3 §6: shared BackbonePA + active_heads=["semantic_tag"].
+# `video_channels` is overridden per-experiment; `num_classes` is the size of
+# the tagging vocabulary (20 or 200 for ScanNet) and must match the .npy at
+# `clip_init_path` and the dataset's `num_classes` (kept aligned via experiment
+# yamls).
+#
+# For Abl-1 (backbone_depth sweep), override `model.probe.backbone_depth` on
+# the CLI (e.g. `model.probe.backbone_depth=0` for read-out purity).
+probe:
+  _target_: probing_vlm_vgm.models.components.probe_pixalign.ProbeModelPA
+  video_channels: 1536
+  # embed_dim 1024 → 512: a depth-2 backbone at width 1024 is ~50M trainable
+  # params on ~1.2k ScanNet train scenes — far past the "shallow probe"
+  # regime the methodology assumes, and the main overfit driver. 512 cuts
+  # the backbone ~4×. backbone_depth is the Abl-1 sweep axis (§5.4).
+  embed_dim: 512
+  backbone_depth: 2
+  backbone_dropout: 0.3   # heavier than other tasks — tagging overfits hardest on ~1.2k scenes
+  gradient_checkpointing: true
+  active_heads: ["semantic_tag"]
+  # ${num_classes} is a top-level var defined in the experiment yaml
+  # (configs/experiment/scannet_tagging/*). 200 by default; override with
+  # `num_classes=20` on the CLI to run the ScanNet20 vocabulary.
+  num_classes: ${num_classes}
+  semantic_embed_dim: 512
+  semantic_num_layers: 2
+  semantic_num_heads: 8
+  semantic_mlp_ratio: 4.0
+  semantic_dropout: 0.1   # raised from 0.0 — light regularization on the head
+  # Closed-vocab default (research_plan v3 §5.2.2 / §6.3.3). For an L3
+  # open-vocab follow-up, switch to "open_vocab" via experiment yaml.
+  semantic_classifier_mode: "per_class"
+  # CLIP ViT-L/14 text embeddings of the class names (built once by
+  # build_clip_class_embeds.py). 768 dim; the head learns a small projector.
+  # Path tracks ${num_classes} → clip_class_embeds_{20,200}_vitl14.npy.
+  clip_init_path: data/ScanNet/clip_class_embeds_${num_classes}_vitl14.npy
+
+# Asymmetric Loss for Multi-Label Classification (Ridnik et al. ICCV 2021).
+# γ_neg=4 down-weights easy negatives — the dominant pathology of long-tail
+# multi-label.
+#
+# asl_clip: 0.05 → 0.0.  The paper's MS-COCO recipe uses clip=0.05 (shift the
+# negative probability so very-low-confidence negatives contribute zero loss).
+# In THIS probe setup it backfired: once the model drifted to an all-positive
+# prediction, clip=0.05 + saturated sigmoid drove the per-class escape
+# gradient to ~2e-4 (verified) — a degenerate attractor the optimizer could
+# not climb out of, so train+val loss froze at ~30-35. clip=0.0 keeps a real
+# gradient (~4e-2/class) at that state. If overfitting on negatives ever
+# resurfaces, prefer raising gamma_neg over re-enabling clip.
+asl_gamma_neg: 4.0
+asl_gamma_pos: 0.0
+asl_clip: 0.0
+
+# Per-class positive rate from train split → enables head/mid/tail bucketing
+# in `compute_tagging_metrics`. Produced by build_tag_labels.py as a side
+# effect of the train-split pass. Path tracks ${num_classes}.
+train_pos_rate_path: data/ScanNet/ScanNet-processed/train_pos_rate_${num_classes}.npy
+
+compile: false

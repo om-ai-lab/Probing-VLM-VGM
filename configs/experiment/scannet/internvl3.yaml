@@ -1,0 +1,50 @@
+# @package _global_
+
+defaults:
+  - override /data: scannet_instance
+  - override /model: instance_probe_mlp
+  - override /callbacks: instance
+
+seed: 42
+tags: ["train", "scannet", "instance-probe"]
+task_name: scannet-instance
+job_name: default
+autoresume: true
+
+gt_num_frames: 8
+batch_size: 8
+target_spatial_size: null
+
+paths:
+  run_folder_name: vlm_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+
+# InternVL3 8B layer21 single-layer feat, C = 3584
+vfm_name: internvl
+feat_postfix: _layer21
+vfm_channels: 3584
+
+data:
+  data_module:
+    train_datasets:
+      - ScanNetInstanceDataset(root='${data.data_root}', root_vfm='${data.feat_root}', split='train', vfm_name='${vfm_name}', feat_postfix='${feat_postfix}', feat_pixalign=True, num_views=${gt_num_frames}, min_view_interval=5, context_len=76, query_idx_divisor=4, target_spatial_size=${target_spatial_size})
+    validation_datasets:
+      - ScanNetInstanceDataset(root='${data.data_root}', root_vfm='${data.feat_root}', split='val', vfm_name='${vfm_name}', feat_postfix='${feat_postfix}', feat_pixalign=True, num_views=${gt_num_frames}, min_view_interval=5, context_len=76, query_idx_divisor=4, seed=0, target_spatial_size=${target_spatial_size})
+    batch_size_per_device: ${batch_size}
+    batch_size_per_device_val: ${batch_size}
+    num_workers: 4
+    num_workers_val: 4
+
+logger:
+  wandb:
+    name: vlm_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+    group: ${task_name}
+
+model:
+  probe:
+    video_channels: ${vfm_channels}
+
+trainer:
+  devices: auto
+  max_epochs: 40
+  precision: bf16-mixed
+  check_val_every_n_epoch: 1

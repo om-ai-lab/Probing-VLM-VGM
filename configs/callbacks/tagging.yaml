@@ -1,0 +1,53 @@
+# Callback preset for Exp-B (semantic tagging).
+#
+# The default callbacks (configs/callbacks/default.yaml) were written for the
+# geometry probe, where `val/loss` is the headline metric. For tagging that's
+# wrong on two counts:
+#   - model_checkpoint monitoring `val/loss` saves the lowest-ASL-loss ckpt,
+#     which under overfitting is NOT the highest-mAP ckpt.
+#   - early_stopping monitoring `train/loss` never fires when overfitting
+#     (train loss keeps falling) — it's effectively disabled.
+#
+# This preset monitors `val/AP_head` (mode=max) for both — NOT `val/mAP`.
+# Reason: on ScanNet200 the val set leaves ~16/200 classes with zero positives
+# (AP=NaN, dropped from mAP) and only ~80/200 classes have >=10 positive val
+# videos. The full 200-class mAP is therefore a noisy checkpoint-selection
+# signal — ~100 tail classes contribute near-random per-class AP. `val/AP_head`
+# is the macro-AP over the 66 head-frequency classes (median ~35 positive val
+# videos each → stable). Training still optimizes all 200 classes and the final
+# table still reports the full head/mid/tail breakdown; we only use the stable
+# head AP to *pick* the checkpoint. (For ScanNet20, all 20 classes are well
+# covered, so val/AP_head ≈ val/mAP there anyway.)
+# Selected per-experiment via `- override /callbacks: tagging` in
+# configs/experiment/scannet_tagging/*.
+defaults:
+  - model_checkpoint
+  - early_stopping
+  - model_summary
+  - rich_progress_bar
+  - _self_
+
+model_checkpoint:
+  dirpath: ${paths.output_dir}/checkpoints
+  # Static filename → the single best-mAP ckpt is always at
+  # <run>/checkpoints/best.ckpt (Lightning 2.6.1 overwrites it in place, no
+  # -v1 suffix, verified). eval_scannet_tagging.sh loads best.ckpt directly.
+  filename: "best"
+  monitor: "val/AP_head"
+  mode: "max"
+  save_top_k: 1          # keep only the best ckpt (+ last.ckpt via save_last)
+  save_last: True
+  auto_insert_metric_name: False
+  # Check + (maybe) save every epoch. The base model_checkpoint.yaml sets
+  # every_n_epochs=10, which under early_stopping(patience=8) would mean the
+  # best epoch is often never written. 1 = evaluate the monitor every epoch.
+  every_n_epochs: 1
+
+early_stopping:
+  monitor: "val/AP_head"
+  mode: "max"
+  patience: 8          # stop after 8 val epochs with no AP_head improvement
+  min_delta: 0.001     # ignore sub-0.1% wiggle so noise doesn't reset patience
+
+model_summary:
+  max_depth: -1

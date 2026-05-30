@@ -147,8 +147,6 @@ def main(argv: list[str] | None = None) -> None:
     # 0 . Determine which layers are still missing (resume support)      #
     # ------------------------------------------------------------------ #
     fname_prefix = "feature_i2v" if "I2V" in args.model_id else "feature"
-    if args.model_id.endswith("14B-Diffusers") and "I2V" not in args.model_id:
-        fname_prefix = "feature_t2v_14b"
     missing_layers = [
         l
         for l in args.output_layers

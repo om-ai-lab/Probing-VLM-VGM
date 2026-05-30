@@ -68,12 +68,35 @@ ScanNet is used for:
 
 ### DL3DV
 
-DL3DV is used for 3D geometry probing. Place processed geometry targets and frozen features as:
+DL3DV is used for 3D geometry probing. Download the `1K`--`6K` subsets of
+[DL3DV-ALL-960P](https://huggingface.co/datasets/DL3DV/DL3DV-ALL-960P) and place
+the raw videos/frames under `data/DL3DV/DL3DV-ALL-960P/`. We then use VGGT to
+construct the 3D task ground truth, including point maps, depth maps, camera
+poses, and confidence maps.
 
-```text
-data/DL3DV/
-  DL3DV-processed/
-  FEAT/
+
+To build the VGGT-generated 3D ground truth, run:
+
+```bash
+python -m probing_vlm_vgm.data.processing.process_dl3dv_multigpu \
+  --root data/DL3DV \
+  --subset all \
+  --gpus 0,1,2,3,4,5,6,7 \
+  --model-path facebook/VGGT-1B \
+  --num-frames 150
+```
+
+This reads scenes from `data/DL3DV/DL3DV-ALL-960P/` and writes processed targets
+to `data/DL3DV/DL3DV-processed/`. After processing, create the training and
+validation split:
+
+```bash
+python -m probing_vlm_vgm.data.processing.dl3dv.create_split \
+  --root data/DL3DV/DL3DV-processed \
+  --subset all \
+  --val-ratio 0.1 \
+  --seed 0 \
+  --out-dir data/DL3DV/DL3DV-processed
 ```
 
 The geometry supervision follows the paper setup: VGGT-generated point maps, depth maps, camera poses, and confidence maps are used as probe targets.
@@ -84,8 +107,27 @@ The probe is trained on frozen intermediate features. We provide feature extract
 
 Supported model families include:
 
-- 🎥 **VGMs**: WAN, CogVideoX, OpenSora, Aether
-- 🖼️ **VLMs**: InternVL3, InternVL3.5, Qwen2.5-VL, Qwen3-VL
+- 🎥 **VGMs**: 
+  - [Wan2.1-T2V-1.3B](https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers)
+  - [WAN2.1-T2V-14B](https://huggingface.co/Wan-AI/Wan2.1-T2V-14B-Diffusers)
+  - [WAN2.1-I2V-14B ](https://huggingface.co/Wan-AI/Wan2.1-I2V-14B-480P-Diffusers)
+  - [CogVideoX-T2V-2B](https://huggingface.co/zai-org/CogVideoX-2b)
+  - [CogVideoX-T2V-5B](https://huggingface.co/zai-org/CogVideoX-5b)
+  - [CogVideoX-I2V-5B](https://huggingface.co/zai-org/CogVideoX-5b-I2V)
+  - [OpenSora2.0](https://huggingface.co/hpcai-tech/Open-Sora-v2)
+  - Aether
+  
+- 🖼️ **VLMs**:
+  - [InternVL3-1B](https://huggingface.co/OpenGVLab/InternVL3-1B)
+  - [InternVL3-2B](https://huggingface.co/OpenGVLab/InternVL3-2B)
+  - [InternVL3-8B](https://huggingface.co/OpenGVLab/InternVL3-8B)
+  - [InternVL3.5-4B](https://huggingface.co/OpenGVLab/InternVL3_5-4B)
+  - [InternVL3.5-8B](https://huggingface.co/OpenGVLab/InternVL3_5-8B)
+  - [Qwen2.5-VL-3B](https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct)
+  - [Qwen2.5-VL-7B](https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct)
+  - [Qwen3-VL-2B](https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct)
+  - [Qwen3-VL-4B](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct)
+  - [Qwen3-VL-8B](https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct)
 
 Example commands:
 

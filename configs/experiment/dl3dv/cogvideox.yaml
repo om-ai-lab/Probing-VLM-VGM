@@ -33,9 +33,9 @@ feat_postfix: _t749_layer20
 data:
   data_module:
     train_datasets:
-    - VideoProbeDataset(root='data/DL3DV/DL3DV-processed', root_vfm='${data.feat_root}', subset='all', split='train', vfm_name='cogvideox', feat_postfix='${feat_postfix}', feat_pixalign=True, num_views=${gt_num_frames}, min_view_interval=5, context_len=76, query_idx_divisor=4, target_spatial_size=${target_spatial_size})
+    - VideoProbeDataset(root='${data.data_root}', root_vfm='${data.feat_root}', subset='all', split='train', vfm_name='cogvideox', feat_postfix='${feat_postfix}', feat_pixalign=True, num_views=${gt_num_frames}, min_view_interval=5, context_len=76, query_idx_divisor=4, target_spatial_size=${target_spatial_size})
     validation_datasets:
-    - VideoProbeDataset(root='data/DL3DV/DL3DV-processed', root_vfm='${data.feat_root}', subset='all', split='val', vfm_name='cogvideox', feat_postfix='${feat_postfix}', feat_pixalign=True, num_views=${gt_num_frames}, min_view_interval=5, context_len=76, query_idx_divisor=4, seed=0, target_spatial_size=${target_spatial_size})
+    - VideoProbeDataset(root='${data.data_root}', root_vfm='${data.feat_root}', subset='all', split='val', vfm_name='cogvideox', feat_postfix='${feat_postfix}', feat_pixalign=True, num_views=${gt_num_frames}, min_view_interval=5, context_len=76, query_idx_divisor=4, seed=0, target_spatial_size=${target_spatial_size})
     batch_size_per_device: ${batch_size}
     batch_size_per_device_val: ${batch_size}
     num_workers: 8

@@ -22,7 +22,7 @@ paths:
 # channel dim as CogVideoX (3072). The feat_postfix mirrors the extractor's
 # convention; if you re-extract with --task videogen, layer 20 is canonical.
 vfm_name: aether
-feat_postfix: _t749_layer20
+feat_postfix: _t749_layer18
 vfm_channels: 3072
 
 data:

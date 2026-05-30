@@ -109,6 +109,7 @@ class BaseQwen3VLExtractor(ABC):
         device: str = "cuda:0",
         torch_dtype: torch.dtype = torch.bfloat16,
         target_size: Optional[Tuple[int, int]] = (960, 540),
+        attn_implementation: str = "sdpa",
     ):
         """
         Initialize the feature extractor.
@@ -122,6 +123,10 @@ class BaseQwen3VLExtractor(ABC):
             target_size: (width, height) to resize all frames to before processing.
                          Set to None to keep original resolution.
                          Default (960, 540) matches DL3DV-960P.
+            attn_implementation: Attention backend passed to Transformers.
+                         Use "sdpa" for broad compatibility, or
+                         "flash_attention_2" when a compatible flash-attn build
+                         is available.
         """
         self.model_path = model_path
         self.select_layers = select_layers
@@ -129,15 +134,17 @@ class BaseQwen3VLExtractor(ABC):
         self.torch_dtype = torch_dtype
         self.device = torch.device(device)
         self.target_size = target_size
+        self.attn_implementation = attn_implementation
         
         logger.info(f"Loading Qwen3-VL model from {model_path}")
         logger.info(f"Target device: {self.device}")
+        logger.info(f"Attention implementation: {self.attn_implementation}")
         
         # Load model
         self.model = Qwen3VLForConditionalGeneration.from_pretrained(
             model_path,
             torch_dtype=torch_dtype,
-            attn_implementation="flash_attention_2",
+            attn_implementation=attn_implementation,
             device_map=None,
             low_cpu_mem_usage=False,
         ).eval().to(self.device)
@@ -490,6 +497,7 @@ def get_qwen3vl_extractor(
     question: str = "",
     device: str = "cuda:0",
     target_size: Optional[Tuple[int, int]] = (960, 540),
+    attn_implementation: str = "sdpa",
 ) -> BaseQwen3VLExtractor:
     """
     Get a cached Qwen3-VL extractor instance.
@@ -501,6 +509,7 @@ def get_qwen3vl_extractor(
         question: The question/prompt
         device: Device to load model on (e.g., "cuda:0", "cuda:1")
         target_size: (width, height) to resize frames to, or None for original
+        attn_implementation: Transformers attention backend.
         
     Returns:
         The extractor instance
@@ -515,6 +524,7 @@ def get_qwen3vl_extractor(
             question=question,
             device=device,
             target_size=target_size,
+            attn_implementation=attn_implementation,
         )
     elif model_type == "sensenova":
         return SenseNovaQwen3VLExtractor(
@@ -523,6 +533,7 @@ def get_qwen3vl_extractor(
             question=question,
             device=device,
             target_size=target_size,
+            attn_implementation=attn_implementation,
         )
     else:
         raise ValueError(f"Unknown model type: {model_type}")

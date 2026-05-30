@@ -7,9 +7,9 @@ feat_root: data/ScanNet/FEAT
 data_module:
   _target_: probing_vlm_vgm.data.video_probe_datamodule.VideoProbeDataModule
   train_datasets:
-    - ScanNetTaggingDataset(root='${data.data_root}', root_vfm='${data.feat_root}', split='train', vfm_name='wan', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=8, min_view_interval=5, context_len=76, query_idx_divisor=4, num_classes=200, min_pixels_per_video=200, min_frames_present=1, target_spatial_size=None)
+    - ScanNetTaggingDataset(root='${data.data_root}', root_vfm='${data.feat_root}', split='train', vfm_name='wan-t2v-1.3b', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=8, min_view_interval=5, context_len=76, query_idx_divisor=4, num_classes=200, min_pixels_per_video=200, min_frames_present=1, target_spatial_size=None)
   validation_datasets:
-    - ScanNetTaggingDataset(root='${data.data_root}', root_vfm='${data.feat_root}', split='val', vfm_name='wan', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=8, min_view_interval=5, context_len=76, query_idx_divisor=4, num_classes=200, seed=0, target_spatial_size=None)
+    - ScanNetTaggingDataset(root='${data.data_root}', root_vfm='${data.feat_root}', split='val', vfm_name='wan-t2v-1.3b', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=8, min_view_interval=5, context_len=76, query_idx_divisor=4, num_classes=200, seed=0, target_spatial_size=None)
   # Tagging IO is light (no masks / images) — runs larger batches comfortably
   # than the instance line.
   batch_size_per_device: 16

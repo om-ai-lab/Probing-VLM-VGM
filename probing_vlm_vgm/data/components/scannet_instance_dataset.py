@@ -15,9 +15,8 @@ is instance-only and those fields would be dead weight that inflates IO.
 
 Sampling logic for frame indices mirrors VideoProbeDataset._sample_query_frames
 (same min-gap slack allocation). VFM-idx mapping for WAN/OpenSora/VLM is also
-identical — we only need the 'wan', 'opensora', 'internvl*', 'qwen3vl*' paths
-since cogvideox/aether/vjepa are irrelevant for the VLM vs Video-Model
-comparison in Setup A (can be added later if needed).
+identical. The supported feature names follow the paper-facing convention
+such as ``wan-t2v-14b``, ``internvl3-8b``, and ``qwen3-vl-8b``.
 """
 from __future__ import annotations
 
@@ -52,7 +51,7 @@ class ScanNetInstanceDataset(VFMFeatureLoaderMixin, EasyDataset):
         root_vfm: str,
         split: str = "train",
         subset=None,  # str ('train'/'val') or list or None → defaults to [split]
-        vfm_name: str = "wan",
+        vfm_name: str = "wan-t2v-1.3b",
         feat_postfix: str = "_t749_layer20",
         feat_pixalign: bool = True,
         num_views: int = 8,

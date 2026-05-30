@@ -48,7 +48,7 @@ class ScanNetTaggingDataset(VFMFeatureLoaderMixin, EasyDataset):
         root_vfm: str,
         split: str = "train",
         subset=None,  # str / list / None — same convention as instance dataset
-        vfm_name: str = "wan",
+        vfm_name: str = "wan-t2v-1.3b",
         feat_postfix: str = "_t749_layer20",
         feat_pixalign: bool = True,
         num_views: int = 8,

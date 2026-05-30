@@ -152,39 +152,37 @@ def invert_pose_ref_and_scale(
 
 class VideoProbeDataset(EasyDataset):
     VIDEO_DIFFUSION_VFMS = {
-        "wan",
-        "wan-14b",
-        "wan-i2v-14b-480p",
+        "wan-t2v-1.3b",
+        "wan-t2v-14b",
+        "wan-i2v-14b",
         "opensora",
     }
     CHUNKED_VIDEO_VFMS = {
-        "cogvideox",
-        "cogvideox-2b",
-        "cogvideox-5b",
-        "cogvideox-5b-i2v",
+        "cogvideox-i2v-5b",
+        "cogvideox-t2v-2b",
+        "cogvideox-t2v-5b",
         "aether",
     }
     VLM_VFMS = {
-        "internvl",
-        "internvl-1b",
-        "internvl-2b",
-        "internvl35-4b",
-        "internvl35-8b",
-        "internvl_sensenova",
-        "qwen3vl",
-        "qwen3vl-2b",
-        "qwen3vl-4b",
-        "qwen3vl_sensenova",
-        "qwen25vl",
-        "qwen25vl-3b",
-        "qwen25vl-7b",
+        "internvl3-1b",
+        "internvl3-2b",
+        "internvl3-8b",
+        "internvl3.5-4b",
+        "internvl3.5-8b",
+        "internvl3-8b-sensenova",
+        "qwen3-vl-8b",
+        "qwen3-vl-2b",
+        "qwen3-vl-4b",
+        "qwen3-vl-8b-sensenova",
+        "qwen2.5-vl-3b",
+        "qwen2.5-vl-7b",
         "videollama3-2b",
         "videollama3-7b",
         "llavaov15-4b",
         "llavaov15-8b",
         "mimo-vl-7b",
-        "wan14b-qwen3vl-concat",
-        "wan14b-qwen3vl-lnconcat",
+        "wan-t2v-14b-qwen3-vl-8b-concat",
+        "wan-t2v-14b-qwen3-vl-8b-lnconcat",
     }
 
     def __init__(
@@ -193,7 +191,7 @@ class VideoProbeDataset(EasyDataset):
         root_vfm: str,
         subset: str = "1K",
         split: str = "train",
-        vfm_name: str = "wan",
+        vfm_name: str = "wan-t2v-1.3b",
         feat_postfix: str = "_t0_layer15",
         feat_pixalign: bool = False,
         seed: int = None,
@@ -208,21 +206,6 @@ class VideoProbeDataset(EasyDataset):
         target_spatial_size=None,  # tuple/list (H', W') to downsample vfm_feat; None = keep native
         **kwargs,
     ):
-        # assert vfm_name in [
-        #     "wan",
-        #     "dino",
-        #     "f3r",
-        #     "vjepa",
-        #     "opensora",
-        #     "cogvideox",
-        #     "aether",
-        #     "internvl",
-        #     "internvl_sensenova",
-        #     "qwen3vl",
-        #     "qwen3vl-4b"
-        #     "qwen3vl_sensenova",
-        #     "qwen25vl",
-        # ], f"Unknown vfm_name {vfm_name}"
         self.vfm_name = vfm_name
         self.feat_postfix = feat_postfix
         self.feat_pixalign = (

@@ -40,13 +40,13 @@ from safetensors.torch import load_file
 
 class VFMFeatureLoaderMixin:
     SUPPORTED_VFMS: Tuple[str, ...] = (
-        "wan", "wan-14b", "wan-i2v-14b-480p", "opensora",
-        "internvl", "internvl-1b", "internvl-2b", "internvl35-4b", "internvl35-8b", "internvl_sensenova",
-        "qwen3vl", "qwen3vl_sensenova", "qwen3vl-4b", "qwen3vl-2b",
-        "qwen25vl-7b", "qwen25vl-3b", "videollama3-7b", "videollama3-2b",
+        "wan-t2v-1.3b", "wan-t2v-14b", "wan-i2v-14b", "opensora",
+        "internvl3-1b", "internvl3-2b", "internvl3-8b", "internvl3.5-4b", "internvl3.5-8b", "internvl3-8b-sensenova",
+        "qwen3-vl-8b", "qwen3-vl-8b-sensenova", "qwen3-vl-4b", "qwen3-vl-2b",
+        "qwen2.5-vl-7b", "qwen2.5-vl-3b", "videollama3-7b", "videollama3-2b",
         "llavaov15-4b", "llavaov15-8b", "mimo-vl-7b",
-        "wan14b-qwen3vl-concat", "wan14b-qwen3vl-lnconcat",
-        "cogvideox", "cogvideox-2b", "cogvideox-5b", "cogvideox-5b-i2v", "aether",
+        "wan-t2v-14b-qwen3-vl-8b-concat", "wan-t2v-14b-qwen3-vl-8b-lnconcat",
+        "cogvideox-i2v-5b", "cogvideox-t2v-2b", "cogvideox-t2v-5b", "aether",
         "vjepa",
         "dino",
     )
@@ -90,7 +90,9 @@ class VFMFeatureLoaderMixin:
             vfm_idx:  (num_views,)  — feature-index for each sampled view;
                                        if pixalign, becomes arange(num_views).
         """
-        if self.vfm_name in ("wan", "wan-14b","wan-i2v-14b-480p", "opensora"):
+        if self.vfm_name in (
+            "wan-t2v-1.3b", "wan-t2v-14b", "wan-i2v-14b", "opensora",
+        ):
             vfm_feat = load_file(vfm_feat_path)["feat"]  # (21, H, W, C)
             if vfm_feat.shape[0] != 21:
                 raise RuntimeError(
@@ -105,11 +107,11 @@ class VFMFeatureLoaderMixin:
             vfm_idx = vfm_idx.clamp(min=0, max=vfm_feat.shape[0] - 1)
 
         elif self.vfm_name in (
-            "internvl", "internvl-1b", "internvl-2b", "internvl35-4b", "internvl35-8b", "internvl_sensenova",
-            "qwen3vl", "qwen3vl_sensenova", "qwen3vl-4b", "qwen3vl-2b",
-            "qwen25vl-7b", "qwen25vl-3b", "videollama3-7b", "videollama3-2b",
+            "internvl3-1b", "internvl3-2b", "internvl3-8b", "internvl3.5-4b", "internvl3.5-8b", "internvl3-8b-sensenova",
+            "qwen3-vl-8b", "qwen3-vl-8b-sensenova", "qwen3-vl-4b", "qwen3-vl-2b",
+            "qwen2.5-vl-7b", "qwen2.5-vl-3b", "videollama3-7b", "videollama3-2b",
             "llavaov15-4b", "llavaov15-8b", "mimo-vl-7b",
-            "wan14b-qwen3vl-concat", "wan14b-qwen3vl-lnconcat",
+            "wan-t2v-14b-qwen3-vl-8b-concat", "wan-t2v-14b-qwen3-vl-8b-lnconcat",
         ):
             # Features stored at query_frame positions
             # [0, 1, 5, 9, ..., context_len) → 20 positions with context_len=76, div=4.
@@ -127,7 +129,9 @@ class VFMFeatureLoaderMixin:
                 [frame_to_feat.get(int(s), 0) for s in sel], dtype=torch.long
             )
 
-        elif self.vfm_name in ("cogvideox", "cogvideox-2b", "cogvideox-5b", "cogvideox-5b-i2v", "aether"):
+        elif self.vfm_name in (
+            "cogvideox-i2v-5b", "cogvideox-t2v-2b", "cogvideox-t2v-5b", "aether",
+        ):
             vfm_feat_5d = load_file(vfm_feat_path)["feat"]  # (N, T, H, W, C)
             n_frames = vfm_feat_5d.shape[1]
             assert n_frames in (11, 13), (

@@ -2,10 +2,11 @@
 """
 Quick‑start
 -----------
-InternVL3 (8B has 28 layers, with query frame indices for video_probe_dataset_ compatibility):
+InternVL3-8B (28 layers, with query frame indices for video_probe_dataset_ compatibility):
 CUDA_VISIBLE_DEVICES=1 HF_HOME=/tmp/hf_cache python -m features.run_dl3dv \
         --vfm internvl \
         --subset all \
+        --vfm-name internvl3-8b \
         --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
         --out-root data/DL3DV/FEAT \
         --model-path ckpt/InternVL3-8B \
@@ -15,10 +16,11 @@ CUDA_VISIBLE_DEVICES=1 HF_HOME=/tmp/hf_cache python -m features.run_dl3dv \
         --query-idx-divisor 4 \
         --output-layers 15 18 21 24
 
-InternVL3 (SenseNova SI version):
+InternVL3-8B (SenseNova SI version):
 CUDA_VISIBLE_DEVICES=3  HF_HOME=/tmp/hf_cache  python -m features.run_dl3dv \
         --vfm internvl \
         --subset 3K \
+        --vfm-name internvl3-8b \
         --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
         --out-root data/DL3DV/FEAT_sensenova \
         --model-path ckpt/SenseNova-SI-1.3-InternVL3-8B \
@@ -31,7 +33,7 @@ CUDA_VISIBLE_DEVICES=3  HF_HOME=/tmp/hf_cache  python -m features.run_dl3dv \
 InternVL3.5-4B (36 layers, Qwen3 LLM hidden size 2560):
 CUDA_VISIBLE_DEVICES=1 HF_HOME=/tmp/hf_cache python -m features.run_dl3dv \
         --vfm internvl \
-        --vfm-name internvl35-4b \
+        --vfm-name internvl3.5-4b \
         --subset all \
         --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
         --out-root data/DL3DV/FEAT \
@@ -45,7 +47,7 @@ CUDA_VISIBLE_DEVICES=1 HF_HOME=/tmp/hf_cache python -m features.run_dl3dv \
 InternVL3.5-8B (36 layers, Qwen3 LLM hidden size 4096; requires all 4 shards):
 CUDA_VISIBLE_DEVICES=1 HF_HOME=/tmp/hf_cache python -m features.run_dl3dv \
         --vfm internvl \
-        --vfm-name internvl35-8b \
+        --vfm-name internvl3.5-8b \
         --subset all \
         --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
         --out-root data/DL3DV/FEAT \
@@ -60,6 +62,7 @@ Qwen3-VL-8B (standard, 36 layers, with query frame indices):
 CUDA_VISIBLE_DEVICES=4 python -m features.run_dl3dv \
         --vfm qwen3vl \
         --subset all \
+        --vfm-name qwen3-vl-8b \
         --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
         --out-root data/DL3DV/FEAT \
         --model-path ckpt/Qwen3-VL-8B-Instruct \
@@ -72,11 +75,11 @@ CUDA_VISIBLE_DEVICES=4 python -m features.run_dl3dv \
 Qwen3-VL-4B (same extractor, different ckpt → use --vfm-name to keep outputs side-by-side):
     # Qwen3-VL-4B has 36 layers (same as 8B) but text_config.hidden_size=2560
     # vs the 8B's 4096 — the probe yaml's video_channels must be 2560 for 4B
-    # (see configs/experiment/dl3dv/qwen3vl_4b.yaml).
-    # Output lands at <out_root>/qwen3vl-4b/<subset>/<hash>/ (instead of qwen3vl/).
+    # (see configs/experiment/dl3dv/qwen3-vl-4b.yaml).
+    # Output lands at <out_root>/qwen3-vl-4b/<subset>/<hash>/ (instead of qwen3-vl-8b/).
 CUDA_VISIBLE_DEVICES=3 python -m features.run_dl3dv \
         --vfm qwen3vl \
-        --vfm-name qwen3vl-4b \
+        --vfm-name qwen3-vl-4b \
         --subset all \
         --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
         --out-root data/DL3DV/FEAT \
@@ -88,10 +91,11 @@ CUDA_VISIBLE_DEVICES=3 python -m features.run_dl3dv \
         --output-layers 19 22 25 28 31
 
 
-Qwen3-VL (SenseNova SI version):
+Qwen3-VL-8B (SenseNova SI version):
 CUDA_VISIBLE_DEVICES=1 python -m features.run_dl3dv \
         --vfm qwen3vl \
         --subset all \
+        --vfm-name qwen3-vl-8b \
         --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
         --out-root data/DL3DV/FEAT_sensenova \
         --model-path ckpt/SenseNova-SI-1.1-Qwen3-VL-8B \
@@ -101,10 +105,11 @@ CUDA_VISIBLE_DEVICES=1 python -m features.run_dl3dv \
         --query-idx-divisor 4 \
         --output-layers 19 22 25 28 31
 
-Qwen2.5-VL (7B, 28 layers, with query frame indices):
+Qwen2.5-VL-7B (28 layers, with query frame indices):
 CUDA_VISIBLE_DEVICES=2 python -m features.run_dl3dv \
         --vfm qwen25vl \
         --subset all \
+        --vfm-name qwen2.5-vl-7b \
         --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
         --out-root data/DL3DV/FEAT \
         --model-path ckpt/Qwen2.5-VL-7B-Instruct \
@@ -117,7 +122,7 @@ CUDA_VISIBLE_DEVICES=2 python -m features.run_dl3dv \
 Qwen2.5-VL-3B 36 layers
 CUDA_VISIBLE_DEVICES=2 python -m features.run_dl3dv \
         --vfm qwen25vl \
-        --vfm-name qwen25vl-3b \
+        --vfm-name qwen2.5-vl-3b \
         --subset all \
         --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
         --out-root data/DL3DV/FEAT \
@@ -154,10 +159,11 @@ CUDA_VISIBLE_DEVICES=4 python -m features.run_dl3dv \
         --query-idx-divisor 4 \
         --output-layers 15 18 21 24
 
-WAN:
+WAN2.1-T2V-1.3B:
 CUDA_VISIBLE_DEVICES=4 python -m features.run_dl3dv \
        --vfm wan \
        --subset all \
+       --vfm-name wan-t2v-1.3b \
        --model-id ckpt/Wan2.1-T2V-1.3B-Diffusers \
        --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
        --out-root  data/DL3DV/FEAT \
@@ -191,10 +197,11 @@ CUDA_VISIBLE_DEVICES=7 python -m features.run_dl3dv \
        --t 0.25 \
        --output-layers 20
 
-CogVideoX:
+CogVideoX-I2V-5B:
 CUDA_VISIBLE_DEVICES=2 python -m features.run_dl3dv \
        --vfm cogvideox \
        --subset all \
+       --vfm-name cogvideox-i2v-5b \
        --model-id ckpt/CogVideoX-5b-I2V \
        --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
        --out-root data/DL3DV/FEAT \
@@ -331,9 +338,9 @@ def main():
         default=None,
         help="Override the directory name used under --out-root (defaults to --vfm). "
              "Use this to differentiate model-size variants of the same extractor, "
-             "e.g. --vfm qwen3vl --vfm-name qwen3vl-4b for the 4B checkpoint, so its "
-             "features land at <out_root>/qwen3vl-4b/<subset>/<hash>/ instead of "
-             "colliding with the 8B output at <out_root>/qwen3vl/...",
+             "e.g. --vfm qwen3vl --vfm-name qwen3-vl-4b for the 4B checkpoint, so its "
+             "features land at <out_root>/qwen3-vl-4b/<subset>/<hash>/ instead of "
+             "colliding with the 8B output at <out_root>/qwen3-vl-8b/...",
     )
 
     parser.add_argument(

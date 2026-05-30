@@ -41,6 +41,15 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+By default, all llm-based feature extraction uses the PyTorch `sdpa` attention
+backend for compatibility. If your machine has a compatible FlashAttention 2
+build, you can optionally install it and pass
+`--attn-implementation flash_attention_2`:
+
+```bash
+pip install flash-attn --no-build-isolation
+```
+
 The training code uses Hydra configs and expects `PROJECT_ROOT` to point to this repository:
 
 ```bash
@@ -53,11 +62,29 @@ python -m probing_vlm_vgm.train --help
 
 ### ScanNet
 
-ScanNet is distributed under its own Terms of Use and requires users to request access from the official ScanNet website. We do not provide ScanNet data or third-party mirrors. After obtaining access, prepare the processed ScanNet files and frozen features as:
+ScanNet is distributed under its own Terms of Use and requires users to request access from the [official ScanNet Repository](https://github.com/ScanNet/ScanNet). Please visit it and download the dataset.
+
+We provide a separate ScanNet preprocessing guide:
+[docs/scannet_process.md](docs/scannet_process.md). It explains how to export
+`.sens` files, organize official train/val splits, build 81-frame clips,
+generate semantic-tagging labels, and prepare CLIP class-name embeddings.
+
+After preprocessing, the expected layout is:
 
 ```text
 data/ScanNet/
   ScanNet-processed/
+    train.json
+    val.json
+    class_names_20.json
+    train/
+      scene0000_00/
+        frames/frame_00000.jpg ... frame_00080.jpg
+        instance_masks.npy
+        poses.npy
+        intrinsic.txt
+        metadata.sft
+        tag_pixel_counts_20.npy
   FEAT/
 ```
 
@@ -110,7 +137,7 @@ Supported model families include:
 - 🎥 **VGMs**: 
   - [Wan2.1-T2V-1.3B](https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers)
   - [WAN2.1-T2V-14B](https://huggingface.co/Wan-AI/Wan2.1-T2V-14B-Diffusers)
-  - [WAN2.1-I2V-14B ](https://huggingface.co/Wan-AI/Wan2.1-I2V-14B-480P-Diffusers)
+  - [WAN2.1-I2V-14B](https://huggingface.co/Wan-AI/Wan2.1-I2V-14B-480P-Diffusers)
   - [CogVideoX-T2V-2B](https://huggingface.co/zai-org/CogVideoX-2b)
   - [CogVideoX-T2V-5B](https://huggingface.co/zai-org/CogVideoX-5b)
   - [CogVideoX-I2V-5B](https://huggingface.co/zai-org/CogVideoX-5b-I2V)
@@ -129,22 +156,67 @@ Supported model families include:
   - [Qwen3-VL-4B](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct)
   - [Qwen3-VL-8B](https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct)
 
-Example commands:
+### DL3DV Examples
 
 ```bash
-# DL3DV VGM features, e.g. WAN
+# DL3DV VGM features: WAN2.1-T2V-14B, layer 20, timestep 749.
 python -m features.run_dl3dv \
   --vfm wan \
+  --vfm-name wan-t2v-14b \
   --subset all \
+  --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
+  --out-root data/DL3DV/FEAT \
   --model-id ckpt/Wan2.1-T2V-14B-Diffusers \
   --prompt "" \
   --output-layers 20 \
   --t 749
 
-# ScanNet VLM features, e.g. Qwen3-VL
+# DL3DV VLM features: Qwen3-VL-8B, layer 22.
+python -m features.run_dl3dv \
+  --vfm qwen3vl \
+  --vfm-name qwen3-vl-8b \
+  --subset all \
+  --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
+  --out-root data/DL3DV/FEAT \
+  --model-path ckpt/Qwen3-VL-8B-Instruct \
+  --model-type qwen3vl \
+  --use-query-frame-indices \
+  --context-len 76 \
+  --query-idx-divisor 4 \
+  --output-layers 22
+```
+
+### ScanNet Examples
+
+The following commands extract the ScanNet features used by the semantic
+tagging and instance grouping probes. Features are written to
+`data/ScanNet/FEAT/<model-name>/<split>/<scene_id>/`.
+
+```bash
+# ScanNet VGM features: WAN2.1-T2V-14B, layer 18, timestep 749.
+python -m features.run_scannet \
+  --vfm wan \
+  --vfm-name wan-t2v-14b \
+  --split both \
+  --scannet-root data/ScanNet/ScanNet-processed \
+  --out-root data/ScanNet/FEAT \
+  --model-id ckpt/Wan2.1-T2V-14B-Diffusers \
+  --prompt "" \
+  --output-layers 18 \
+  --t 749
+
+# ScanNet VLM features: Qwen3-VL-8B, layer 22.
 python -m features.run_scannet \
   --vfm qwen3vl \
+  --vfm-name qwen3-vl-8b \
+  --split both \
+  --scannet-root data/ScanNet/ScanNet-processed \
+  --out-root data/ScanNet/FEAT \
   --model-path ckpt/Qwen3-VL-8B-Instruct \
+  --model-type qwen3vl \
+  --use-query-frame-indices \
+  --context-len 76 \
+  --query-idx-divisor 4 \
   --output-layers 22
 ```
 
@@ -163,32 +235,32 @@ python -m probing_vlm_vgm.train experiment=<task>/<model> job_name=<run_name>
 
 ```bash
 python -m probing_vlm_vgm.train \
-  experiment=scannet_tagging/qwen3vl \
-  job_name=qwen3vl
+  experiment=scannet_tagging/qwen3-vl-8b \
+  job_name=qwen3-vl-8b
 ```
 
 ### Instance Grouping
 
 ```bash
 python -m probing_vlm_vgm.train \
-  experiment=scannet/wan-14b \
-  job_name=wan14b
+  experiment=scannet/wan-t2v-14b \
+  job_name=wan-t2v-14b
 ```
 
 ### 3D Geometry
 
 ```bash
 python -m probing_vlm_vgm.train \
-  experiment=dl3dv/wan-14b \
-  job_name=wan14b
+  experiment=dl3dv/wan-t2v-14b \
+  job_name=wan-t2v-14b
 ```
 
 Hydra overrides can be used to change paths, feature layers, batch sizes, or probe settings:
 
 ```bash
 python -m probing_vlm_vgm.train \
-  experiment=dl3dv/qwen3vl \
-  job_name=qwen3vl_layer22 \
+  experiment=dl3dv/qwen3-vl-8b \
+  job_name=qwen3-vl-8b_layer22 \
   data.feat_root=/path/to/DL3DV/FEAT \
   feat_postfix=_layer22
 ```
@@ -199,8 +271,8 @@ We include configs for simple VLM+VGM feature-level fusion:
 
 ```bash
 python -m probing_vlm_vgm.train \
-  experiment=dl3dv/wan14b-qwen3vl-lnconcat \
-  job_name=wan14b_qwen3vl_fusion
+  experiment=dl3dv/wan-t2v-14b-qwen3-vl-8b-lnconcat \
+  job_name=wan-t2v-14b_qwen3-vl-8b_fusion
 ```
 
 The fusion baseline normalizes frozen features from each model and concatenates them along the channel dimension before feeding them to the same probe.

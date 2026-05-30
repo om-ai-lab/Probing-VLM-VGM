@@ -275,7 +275,9 @@ class WanFeaturizer:
         """
         # Load the transformer model with feature output capability
         transformer = TransformerWanWithFeatureOutput.from_pretrained(
-            model_id, subfolder="transformer", torch_dtype=torch.bfloat16
+            model_id,
+            subfolder="transformer",
+            torch_dtype=torch.bfloat16,
         )
 
         # Initialize the pipeline with the modified transformer

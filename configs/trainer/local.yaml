@@ -13,7 +13,7 @@ defaults:
 # strategy. It is wired as the global default in configs/train.yaml since
 # this checkout is run interactively, not on SLURM.
 #
-#     python -m probing_vlm_vgm.train experiment=scannet_tagging/wan ...   # uses this
+#     python -m probing_vlm_vgm.train experiment=scannet_tagging/wan-t2v-1.3b ...   # uses this
 #
 # For SLURM cluster runs, switch back explicitly:
 #

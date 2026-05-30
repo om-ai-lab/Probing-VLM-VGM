@@ -18,8 +18,8 @@ target_spatial_size: null
 paths:
   run_folder_name: vlm_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
 
-vfm_name: internvl-1b
-feat_postfix: _layer21
+vfm_name: internvl3-1b
+feat_postfix: _layer18
 vfm_channels: 896
 
 data:

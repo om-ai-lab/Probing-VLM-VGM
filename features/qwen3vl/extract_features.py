@@ -115,6 +115,14 @@ def parse_args(argv: List[str] | None = None) -> argparse.Namespace:
         help="Device to load model on (e.g., cuda:0, cuda:1)",
     )
     parser.add_argument(
+        "--attn-implementation",
+        choices=["sdpa", "eager", "flash_attention_2"],
+        default="sdpa",
+        help="Attention backend for Transformers model loading. "
+             "Use sdpa for compatibility; use flash_attention_2 only when "
+             "flash-attn is compatible with the system glibc/CUDA/PyTorch.",
+    )
+    parser.add_argument(
         "--target-size",
         nargs=2,
         type=int,
@@ -216,7 +224,10 @@ def main(argv: List[str] | None = None) -> None:
     
     # Get extractor
     logger.info(f"Loading {args.model_type} model from {args.model_path}")
-    logger.info(f"Device: {args.device}, Layers: {args.output_layers}, target_size: {target_size}")
+    logger.info(
+        f"Device: {args.device}, Layers: {args.output_layers}, "
+        f"target_size: {target_size}, attn: {args.attn_implementation}"
+    )
     extractor = get_qwen3vl_extractor(
         model_path=args.model_path,
         model_type=args.model_type,
@@ -224,6 +235,7 @@ def main(argv: List[str] | None = None) -> None:
         question=args.prompt,
         device=args.device,
         target_size=target_size,
+        attn_implementation=args.attn_implementation,
     )
     
     # Extract features

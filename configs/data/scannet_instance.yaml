@@ -4,9 +4,9 @@ feat_root: data/ScanNet/FEAT
 data_module:
   _target_: probing_vlm_vgm.data.video_probe_datamodule.VideoProbeDataModule
   train_datasets:
-    - ScanNetInstanceDataset(root='${data.data_root}', root_vfm='${data.feat_root}', split='train', vfm_name='wan', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=8, min_view_interval=5, context_len=76, query_idx_divisor=4, target_spatial_size=None)
+    - ScanNetInstanceDataset(root='${data.data_root}', root_vfm='${data.feat_root}', split='train', vfm_name='wan-t2v-1.3b', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=8, min_view_interval=5, context_len=76, query_idx_divisor=4, target_spatial_size=None)
   validation_datasets:
-    - ScanNetInstanceDataset(root='${data.data_root}', root_vfm='${data.feat_root}', split='val', vfm_name='wan', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=8, min_view_interval=5, context_len=76, query_idx_divisor=4, seed=0, target_spatial_size=None)
+    - ScanNetInstanceDataset(root='${data.data_root}', root_vfm='${data.feat_root}', split='val', vfm_name='wan-t2v-1.3b', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=8, min_view_interval=5, context_len=76, query_idx_divisor=4, seed=0, target_spatial_size=None)
   batch_size_per_device: 4
   batch_size_per_device_val: 4
   num_workers: 8

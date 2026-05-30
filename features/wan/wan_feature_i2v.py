@@ -314,14 +314,20 @@ class WanFeaturizerI2V:
         """
         # Load the transformer model with feature output capability
         transformer = TransformerWanWithFeatureOutput.from_pretrained(
-            model_id, subfolder="transformer", torch_dtype=torch.bfloat16
+            model_id,
+            subfolder="transformer",
+            torch_dtype=torch.bfloat16,
         )
 
         image_encoder = CLIPVisionModel.from_pretrained(
-            model_id, subfolder="image_encoder", torch_dtype=torch.float16
+            model_id,
+            subfolder="image_encoder",
+            torch_dtype=torch.float16,
         )
         vae = AutoencoderKLWan.from_pretrained(
-            model_id, subfolder="vae", torch_dtype=torch.bfloat16
+            model_id,
+            subfolder="vae",
+            torch_dtype=torch.bfloat16,
         )
 
         # Initialize the pipeline with the modified transformer

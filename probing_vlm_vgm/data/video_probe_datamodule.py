@@ -325,6 +325,6 @@ class VideoProbeDataModule(LightningDataModule):
 
 if __name__ == "__main__":
     _ = VideoProbeDataModule(
-        train_datasets=["VideoProbeDataset(root='data/CO3D/CO3D-processed', root_vfm='data/CO3D/FEAT', subset='all', split='train', vfm_name='wan', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=4, min_view_interval=5, context_len=76, query_idx_divisor=4)"],
-        validation_datasets=["VideoProbeDataset(root='data/CO3D/CO3D-processed', root_vfm='data/CO3D/FEAT', subset='all', split='val', vfm_name='wan', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=4, min_view_interval=5, context_len=76, query_idx_divisor=4, seed=0)"],
+        train_datasets=["VideoProbeDataset(root='data/CO3D/CO3D-processed', root_vfm='data/CO3D/FEAT', subset='all', split='train', vfm_name='wan-t2v-1.3b', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=4, min_view_interval=5, context_len=76, query_idx_divisor=4)"],
+        validation_datasets=["VideoProbeDataset(root='data/CO3D/CO3D-processed', root_vfm='data/CO3D/FEAT', subset='all', split='val', vfm_name='wan-t2v-1.3b', feat_postfix='_t749_layer20', feat_pixalign=True, num_views=4, min_view_interval=5, context_len=76, query_idx_divisor=4, seed=0)"],
     )

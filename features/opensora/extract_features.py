@@ -11,12 +11,12 @@ Each file stores a single key  ``"feat"`` whose value is shaped
 Typical call
 ------------
 python -m features.opensora.extract_features \
-       --scene-dir   data/DL3DV/DL3DV-10K/1K/0a1b7c20a92c43c6b8954b1ac909fb2f0fa8b2997b80604bc8bbec80a1cb2da3/images_4 \
-       --data-sft    data/DL3DV/DL3DV-processed/1K/0a1b7c20a92c43c6b8954b1ac909fb2f0fa8b2997b80604bc8bbec80a1cb2da3.sft \
-       --out-dir     features/opensora/samples/0a1b7c20a92c43c6b8954b1ac909fb2f0fa8b2997b80604bc8bbec80a1cb2da3 \
+       --scene-dir   data/DL3DV/DL3DV-ALL-960P/1K/<hash>/images_4 \
+       --data-sft    data/DL3DV/DL3DV-processed/1K/<hash>.sft \
+       --out-dir     data/DL3DV/FEAT/opensora/1K/<hash> \
        --config-path features/opensora/configs/diffusion/inference/640px.py \
-       --t 0.6 \
-       --output-layers 15
+       --t 0.25 \
+       --output-layers 20
 """
 from __future__ import annotations
 
@@ -101,7 +101,7 @@ def main(argv: list[str] | None = None) -> None:
         "--output-layers",
         nargs="+",
         type=int,
-        default=[15],
+        default=[20],
         help="Transformer block indices to extract",
     )
     parser.add_argument("--seed", type=int, default=42)

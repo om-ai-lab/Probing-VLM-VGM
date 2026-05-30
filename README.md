@@ -298,6 +298,6 @@ If you find this project useful, please cite:
 
 ## 🙏 Acknowledgments
 
-This codebase builds on and adapts components from several excellent open-source projects, including **VidFM3D**, **VGGT**, **DUSt3R/Fast3R**, and feature extraction code or model interfaces from the evaluated VLM/VGM families. We thank the authors for making their implementations available.
+This codebase builds on and adapts components from several excellent open-source projects, including **VidFM3D**, **VGGT**, and feature extraction code or model interfaces from the evaluated VLM/VGM families. We thank the authors for making their implementations available.
 
 Please refer to the original repositories and model cards for the licenses and terms of use of each dataset, model, and external dependency.

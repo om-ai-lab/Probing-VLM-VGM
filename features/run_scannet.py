@@ -1,264 +1,41 @@
 #!/usr/bin/env python3
-"""ScanNet → feature extraction wrapper (mirrors features/run_dl3dv.py).
+"""ScanNet feature extraction wrapper.
 
 Unlike DL3DV which organizes scenes under subsets (1K, 2K, ...), ScanNet uses
 split directories (train, val). We adapt the DL3DV driver to walk
 ``<scannet_processed_root>/<split>/<scene_id>/`` and dispatch each scene to
 the requested VFM extractor, exactly like run_dl3dv.py does for hash dirs.
 
-Subset/path convention for output:
-    <out_root>/<vfm>/<split>/<scene_id>/feature_*.sft
+Output convention:
+    <out_root>/<vfm_name>/<split>/<scene_id>/feature_*.sft
 
-This matches the pattern ``<out_root>/<vfm>/<subset>/<hash>/…`` used by
-run_dl3dv.py, with ``subset=split`` and ``hash=scene_id``.
+Paper-style examples:
 
-Example (WAN2.1-T2V-1.3B, train split, first 10 scenes):
-CUDA_VISIBLE_DEVICES=4 python -m features.run_scannet \\
-    --vfm wan --vfm-name wan-t2v-1.3b \\
-    --split both \\
-    --scannet-root data/ScanNet/ScanNet-processed \\
-    --out-root data/ScanNet/FEAT \\
-    --model-id ckpt/Wan2.1-T2V-1.3B-Diffusers \\
-    --prompt "" --output-layers 20 --t 749 \\
-    --end 10
-
-Example (InternVL3-8B, query-frame-indices, matches DL3DV convention):
-CUDA_VISIBLE_DEVICES=1 HF_HOME=/tmp/hf_cache python -m features.run_scannet \\
-    --vfm internvl --vfm-name internvl3-8b --split train \\
-    --scannet-root data/ScanNet/ScanNet-processed \\
-    --out-root data/ScanNet/FEAT \\
-    --model-path ckpt/InternVL3-8B --model-type internvl3 \\
-    --use-query-frame-indices --context-len 76 --query-idx-divisor 4 \\
-    --output-layers 12 15 18 21 24
-
-
-
-
-
-# Wan
-CUDA_VISIBLE_DEVICES=6 python -m features.run_scannet \
-    --vfm wan --vfm-name wan-t2v-1.3b \
-    --split both \
-    --scannet-root data/ScanNet/ScanNet-processed \
-    --out-root data/ScanNet/FEAT \
-    --model-id ckpt/Wan2.1-T2V-1.3B-Diffusers \
-    --prompt "" --output-layers 10 12 15 --t 749
-
-CUDA_VISIBLE_DEVICES=5 python -m features.run_scannet \
-    --vfm wan --vfm-name wan-t2v-14b \
-    --split both \
-    --scannet-root data/ScanNet/ScanNet-processed \
-    --out-root data/ScanNet/FEAT \
-    --model-id ckpt/Wan2.1-T2V-14B-Diffusers \
-    --prompt "" --output-layers 10 12 15 18 20 --t 749
-
-CUDA_VISIBLE_DEVICES=5 python -m features.run_scannet \
-    --vfm wan --vfm-name wan-i2v-14b \
-    --split both \
-    --scannet-root data/ScanNet/ScanNet-processed \
-    --out-root data/ScanNet/FEAT \
-    --model-id ckpt/Wan2.1-I2V-14B-480P-Diffusers \
-    --prompt "" --output-layers 10 12 15 18 20 --t 749 \
-    --i2v-condition-frame first
-
-# OpenSora
-CUDA_VISIBLE_DEVICES=5 python -m features.run_scannet \
-  --vfm opensora --split both \
-  --out-root data/ScanNet/FEAT \
-  --t 0.25 --output-layers 10 12 15
-
-# InternVL3-8B
-CUDA_VISIBLE_DEVICES=0 HF_HOME=/tmp/hf_cache python -m features.run_scannet \
-  --vfm internvl --vfm-name internvl3-8b --split both \
-  --model-path ckpt/InternVL3-8B --model-type internvl3 \
-  --use-query-frame-indices --context-len 76 --query-idx-divisor 4 \
-  --output-layers 12 15 18 21 24
-
-# InternVL3-1B 24 layers
-CUDA_VISIBLE_DEVICES=7 HF_HOME=/tmp/hf_cache python -m features.run_scannet \
-  --vfm internvl --vfm-name internvl3-1b --split both \
-  --model-path ckpt/InternVL3-1B --model-type internvl3 \
-  --use-query-frame-indices --context-len 76 --query-idx-divisor 4 \
-  --output-layers 9 12 15 18 21
-
-# InternVL3-2B 28 layers
-CUDA_VISIBLE_DEVICES=4 HF_HOME=/tmp/hf_cache python -m features.run_scannet \
-  --vfm internvl --vfm-name internvl3-2b --split both \
-  --model-path ckpt/InternVL3-2B --model-type internvl3 \
-  --use-query-frame-indices --context-len 76 --query-idx-divisor 4 \
-  --output-layers 12 15 18 21 24
-
-# InternVL3-8B SenseNova (注意 --out-root 换个目录避免覆盖)
-CUDA_VISIBLE_DEVICES=3 HF_HOME=/tmp/hf_cache python -m features.run_scannet \
-  --vfm internvl --vfm-name internvl3-8b --split both \
-  --model-path ckpt/SenseNova-SI-1.3-InternVL3-8B --model-type sensenova \
-  --use-query-frame-indices --context-len 76 --query-idx-divisor 4 \
-  --output-layers 12 15 18 21 24 \
-  --out-root data/ScanNet/FEAT_sensenova
-
-# InternVL3.5-4B 36 layers
-CUDA_VISIBLE_DEVICES=0 HF_HOME=/tmp/hf_cache python -m features.run_scannet \
-  --vfm internvl --vfm-name internvl3.5-4b --split both \
-  --model-path ckpt/InternVL3_5-4B --model-type internvl35 \
-  --use-query-frame-indices --context-len 76 --query-idx-divisor 4 \
-  --output-layers 19 22 25 28 31
-
-# InternVL3.5-8B 36 layers (requires all 4 checkpoint shards)
-CUDA_VISIBLE_DEVICES=0 HF_HOME=/tmp/hf_cache python -m features.run_scannet \
-  --vfm internvl --vfm-name internvl3.5-8b --split both \
-  --model-path ckpt/InternVL3_5-8B --model-type internvl35 \
-  --use-query-frame-indices --context-len 76 --query-idx-divisor 4 \
-  --output-layers 19 22 25 28 31
-
-# Qwen3-VL-8B
-CUDA_VISIBLE_DEVICES=6 python -m features.run_scannet \
-  --vfm qwen3vl --vfm-name qwen3-vl-8b --split both \
-  --model-path ckpt/Qwen3-VL-8B-Instruct --model-type qwen3vl \
-  --use-query-frame-indices --context-len 76 --query-idx-divisor 4 \
-  --output-layers 13 16 19 22 25 28 \
-  --out-root data/ScanNet/FEAT
-
-# Qwen3-VL-8B SenseNova
+WAN2.1-T2V-14B, layer 18, timestep 749:
 CUDA_VISIBLE_DEVICES=0 python -m features.run_scannet \
-  --vfm qwen3vl --vfm-name qwen3-vl-8b --split both \
-  --model-path ckpt/SenseNova-SI-1.1-Qwen3-VL-8B --model-type sensenova \
-  --use-query-frame-indices --context-len 76 --query-idx-divisor 4 \
-  --output-layers 13 16 19 22 25 28 \
-  --out-root data/ScanNet/FEAT_sensenova
-
-# Qwen3-VL-4B
-CUDA_VISIBLE_DEVICES=3 python -m features.run_scannet \
-    --vfm qwen3vl \
-    --vfm-name qwen3-vl-4b \
-    --split both \
-    --scannet-root data/ScanNet/ScanNet-processed \
-    --model-path ckpt/Qwen3-VL-4B-Instruct \
-    --model-type qwen3vl \
-    --use-query-frame-indices --context-len 76 --query-idx-divisor 4 \
-    --output-layers  13 16 19 22 25 28
-
-# Qwen3-VL-2B
-CUDA_VISIBLE_DEVICES=3 python -m features.run_scannet \
-    --vfm qwen3vl \
-    --vfm-name qwen3-vl-2b \
-    --split both \
-    --scannet-root data/ScanNet/ScanNet-processed \
-    --model-path ckpt/Qwen3-VL-2B-Instruct \
-    --model-type qwen3vl \
-    --use-query-frame-indices --context-len 76 --query-idx-divisor 4 \
-    --output-layers  12 15 18 21 24
-
-# Qwen2.5-VL-7B (28 layers, with query frame indices):
-CUDA_VISIBLE_DEVICES=7 python -m features.run_scannet \
-        --vfm qwen25vl \
-        --vfm-name qwen2.5-vl-7b \
-        --split both \
-        --scannet-root data/ScanNet/ScanNet-processed \
-        --model-path ckpt/Qwen2.5-VL-7B-Instruct \
-        --model-type qwen25vl \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 12 15 18 21 24
-        
-# Qwen2.5-VL-3B 36layers
-CUDA_VISIBLE_DEVICES=7 python -m features.run_scannet \
-        --vfm qwen25vl \
-        --split both \
-        --vfm-name qwen2.5-vl-3b \
-        --scannet-root data/ScanNet/ScanNet-processed \
-        --model-path ckpt/Qwen2.5-VL-3B-Instruct \
-        --model-type qwen25vl \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 12 15 18 21 24
-
-# LLaVA-OneVision-1.5-4B native video mode
-CUDA_VISIBLE_DEVICES=3 python -m features.run_scannet \
-        --vfm llavaov15 \
-        --vfm-name llavaov15-4b \
+        --vfm wan \
+        --vfm-name wan-t2v-14b \
         --split both \
         --scannet-root data/ScanNet/ScanNet-processed \
         --out-root data/ScanNet/FEAT \
-        --model-path ckpt/LLaVA-OneVision-1.5-4B-Instruct \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --target-size 448 448 \
-        --output-layers 12 15 18 21 24
+        --model-id ckpt/Wan2.1-T2V-14B-Diffusers \
+        --prompt "" \
+        --output-layers 18 \
+        --t 749
 
-
-# LLaVA-OneVision-1.5-8B native video mode
-CUDA_VISIBLE_DEVICES=3 python -m features.run_scannet \
-        --vfm llavaov15 \
-        --vfm-name llavaov15-8b \
+Qwen3-VL-8B, layer 22:
+CUDA_VISIBLE_DEVICES=0 python -m features.run_scannet \
+        --vfm qwen3vl \
+        --vfm-name qwen3-vl-8b \
         --split both \
         --scannet-root data/ScanNet/ScanNet-processed \
         --out-root data/ScanNet/FEAT \
-        --model-path ckpt/LLaVA-OneVision-1.5-8B-Instruct \
+        --model-path ckpt/Qwen3-VL-8B-Instruct \
+        --model-type qwen3vl \
         --use-query-frame-indices \
         --context-len 76 \
         --query-idx-divisor 4 \
-        --target-size 448 448 \
-        --output-layers 13 16 19 22 25 28
-
-# MiMo-VL-7B native video mode
-CUDA_VISIBLE_DEVICES=2 python -m features.run_scannet \
-        --vfm mimo \
-        --vfm-name mimo-vl-7b \
-        --split both \
-        --scannet-root data/ScanNet/ScanNet-processed \
-        --out-root data/ScanNet/FEAT \
-        --model-path ckpt/MiMo-VL-7B-SFT \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --target-size 448 448 \
-        --output-layers 12 15 18 21 24
-
-# VJEPA (single-layer self-supervised video encoder, no --output-layers / --t)
-CUDA_VISIBLE_DEVICES=4 python -m features.run_scannet \
-    --vfm vjepa --split both \
-    --scannet-root data/ScanNet/ScanNet-processed \
-    --out-root data/ScanNet/FEAT
-
-
-# CogVideoX-T2V-2B (DIFT-style; supports multi-layer extraction)
-CUDA_VISIBLE_DEVICES=0 python -m features.run_scannet \
-    --vfm cogvideox --vfm-name cogvideox-t2v-2b --split both \
-    --scannet-root data/ScanNet/ScanNet-processed \
-    --out-root data/ScanNet/FEAT \
-    --model-id ckpt/CogVideoX-2b \
-    --t 749 --output-layers 10 12 15 18 20
-
-
-# CogVideoX-T2V-5B (DIFT-style; supports multi-layer extraction)
-CUDA_VISIBLE_DEVICES=0 python -m features.run_scannet \
-    --vfm cogvideox --vfm-name cogvideox-t2v-5b --split both \
-    --scannet-root data/ScanNet/ScanNet-processed \
-    --out-root data/ScanNet/FEAT \
-    --model-id ckpt/CogVideoX-5b \
-    --t 749 --output-layers 10 12 15 18 20
-
-
-# CogVideoX-I2V-5B (DIFT-style; supports multi-layer extraction)
-CUDA_VISIBLE_DEVICES=0 python -m features.run_scannet \
-    --vfm cogvideox --vfm-name cogvideox-i2v-5b --split both \
-    --scannet-root data/ScanNet/ScanNet-processed \
-    --out-root data/ScanNet/FEAT \
-    --model-id ckpt/CogVideoX-5b-I2V \
-    --t 749 --output-layers 10 12 15 18 20
-
-
-# Aether (3D-finetuned CogVideoX; --task videogen mirrors the DL3DV setup)
-CUDA_VISIBLE_DEVICES=0 python -m features.run_scannet \
-    --vfm aether --split both \
-    --scannet-root data/ScanNet/ScanNet-processed \
-    --out-root data/ScanNet/FEAT \
-    --t 749 --output-layers 10 12 15 18 20 --task videogen
-
-
+        --output-layers 22
 """
 import argparse
 import importlib
@@ -351,8 +128,8 @@ def main():
         "--vfm",
         default="wan",
         choices=[
-            "wan", "dino", "vjepa", "opensora", "cogvideox", "aether",
-            "f3r", "internvl", "qwen3vl", "qwen25vl", "videollama3", "llavaov15", "mimo",
+            "wan", "opensora", "cogvideox", "aether",
+            "internvl", "qwen3vl", "qwen25vl",
         ],
         help="Which extractor module to invoke.",
     )

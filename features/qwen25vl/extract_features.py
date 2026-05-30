@@ -7,12 +7,15 @@ and saves them in safetensor format for downstream probe training.
 
 Usage:
     python -m features.qwen25vl.extract_features \
-        --scene-dir data/DL3DV/DL3DV-ALL-960P/1K/{hash}/images_4 \
-        --data-sft data/DL3DV/DL3DV-processed/1K/{hash}.sft \
-        --out-dir data/DL3DV/FEAT/qwen25vl/1K/{hash} \
+        --scene-dir data/DL3DV/DL3DV-ALL-960P/1K/<hash>/images_4 \
+        --data-sft data/DL3DV/DL3DV-processed/1K/<hash>.sft \
+        --out-dir data/DL3DV/FEAT/qwen2.5-vl-7b/1K/<hash> \
         --model-path ckpt/Qwen2.5-VL-7B-Instruct \
-        --num-frames 16 \
-        --output-layers 7 14 21 28
+        --model-type qwen25vl \
+        --use-query-frame-indices \
+        --context-len 76 \
+        --query-idx-divisor 4 \
+        --output-layers 21
 """
 
 from __future__ import annotations

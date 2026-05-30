@@ -1,68 +1,28 @@
 #!/usr/bin/env python3
-"""
-Quick‑start
------------
-InternVL3-8B (28 layers, with query frame indices for video_probe_dataset_ compatibility):
-CUDA_VISIBLE_DEVICES=1 HF_HOME=/tmp/hf_cache python -m features.run_dl3dv \
-        --vfm internvl \
-        --subset all \
-        --vfm-name internvl3-8b \
-        --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-        --out-root data/DL3DV/FEAT \
-        --model-path ckpt/InternVL3-8B \
-        --model-type internvl3 \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 15 18 21 24
+"""DL3DV feature extraction wrapper.
 
-InternVL3-8B (SenseNova SI version):
-CUDA_VISIBLE_DEVICES=3  HF_HOME=/tmp/hf_cache  python -m features.run_dl3dv \
-        --vfm internvl \
-        --subset 3K \
-        --vfm-name internvl3-8b \
-        --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-        --out-root data/DL3DV/FEAT_sensenova \
-        --model-path ckpt/SenseNova-SI-1.3-InternVL3-8B \
-        --model-type sensenova \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 15 18 21 24
+This script walks DL3DV scene directories and dispatches each scene to the
+requested extractor under ``features/<vfm>/extract_features.py``.
 
-InternVL3.5-4B (36 layers, Qwen3 LLM hidden size 2560):
-CUDA_VISIBLE_DEVICES=1 HF_HOME=/tmp/hf_cache python -m features.run_dl3dv \
-        --vfm internvl \
-        --vfm-name internvl3.5-4b \
+Paper-style examples:
+
+WAN2.1-T2V-14B, layer 20, timestep 749:
+CUDA_VISIBLE_DEVICES=0 python -m features.run_dl3dv \
+        --vfm wan \
+        --vfm-name wan-t2v-14b \
         --subset all \
         --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
         --out-root data/DL3DV/FEAT \
-        --model-path ckpt/InternVL3_5-4B \
-        --model-type internvl35 \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 19 22 25 28 31
+        --model-id ckpt/Wan2.1-T2V-14B-Diffusers \
+        --prompt "" \
+        --output-layers 20 \
+        --t 749
 
-InternVL3.5-8B (36 layers, Qwen3 LLM hidden size 4096; requires all 4 shards):
-CUDA_VISIBLE_DEVICES=1 HF_HOME=/tmp/hf_cache python -m features.run_dl3dv \
-        --vfm internvl \
-        --vfm-name internvl3.5-8b \
-        --subset all \
-        --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-        --out-root data/DL3DV/FEAT \
-        --model-path ckpt/InternVL3_5-8B \
-        --model-type internvl35 \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 19 22 25 28 31
-
-Qwen3-VL-8B (standard, 36 layers, with query frame indices):
-CUDA_VISIBLE_DEVICES=4 python -m features.run_dl3dv \
+Qwen3-VL-8B, layer 22:
+CUDA_VISIBLE_DEVICES=0 python -m features.run_dl3dv \
         --vfm qwen3vl \
-        --subset all \
         --vfm-name qwen3-vl-8b \
+        --subset all \
         --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
         --out-root data/DL3DV/FEAT \
         --model-path ckpt/Qwen3-VL-8B-Instruct \
@@ -70,162 +30,7 @@ CUDA_VISIBLE_DEVICES=4 python -m features.run_dl3dv \
         --use-query-frame-indices \
         --context-len 76 \
         --query-idx-divisor 4 \
-        --output-layers 19 22 25 28 31
-
-Qwen3-VL-4B (same extractor, different ckpt → use --vfm-name to keep outputs side-by-side):
-    # Qwen3-VL-4B has 36 layers (same as 8B) but text_config.hidden_size=2560
-    # vs the 8B's 4096 — the probe yaml's video_channels must be 2560 for 4B
-    # (see configs/experiment/dl3dv/qwen3-vl-4b.yaml).
-    # Output lands at <out_root>/qwen3-vl-4b/<subset>/<hash>/ (instead of qwen3-vl-8b/).
-CUDA_VISIBLE_DEVICES=3 python -m features.run_dl3dv \
-        --vfm qwen3vl \
-        --vfm-name qwen3-vl-4b \
-        --subset all \
-        --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-        --out-root data/DL3DV/FEAT \
-        --model-path ckpt/Qwen3-VL-4B-Instruct \
-        --model-type qwen3vl \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 19 22 25 28 31
-
-
-Qwen3-VL-8B (SenseNova SI version):
-CUDA_VISIBLE_DEVICES=1 python -m features.run_dl3dv \
-        --vfm qwen3vl \
-        --subset all \
-        --vfm-name qwen3-vl-8b \
-        --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-        --out-root data/DL3DV/FEAT_sensenova \
-        --model-path ckpt/SenseNova-SI-1.1-Qwen3-VL-8B \
-        --model-type sensenova \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 19 22 25 28 31
-
-Qwen2.5-VL-7B (28 layers, with query frame indices):
-CUDA_VISIBLE_DEVICES=2 python -m features.run_dl3dv \
-        --vfm qwen25vl \
-        --subset all \
-        --vfm-name qwen2.5-vl-7b \
-        --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-        --out-root data/DL3DV/FEAT \
-        --model-path ckpt/Qwen2.5-VL-7B-Instruct \
-        --model-type qwen25vl \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 12 15 18 21 24
-
-Qwen2.5-VL-3B 36 layers
-CUDA_VISIBLE_DEVICES=2 python -m features.run_dl3dv \
-        --vfm qwen25vl \
-        --vfm-name qwen2.5-vl-3b \
-        --subset all \
-        --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-        --out-root data/DL3DV/FEAT \
-        --model-path ckpt/Qwen2.5-VL-3B-Instruct \
-        --model-type qwen25vl \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 19 22 25 28 31
-
-
-
-LLaVA-NeXT-Video (7B, Vicuna 32 layers, with query frame indices):
-CUDA_VISIBLE_DEVICES=4 python -m features.run_dl3dv \
-        --vfm llavanextvideo \
-        --subset all \
-        --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-        --out-root data/DL3DV/FEAT \
-        --model-path ckpt/LLaVA-NeXT-Video-7B-hf \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 8 16 24 32
-
-Cambrian-S (7B, Qwen2.5-7B LLM 28 layers, SigLIP2-so400m vision tower, fixed 8x8 padded spatial grid):
-CUDA_VISIBLE_DEVICES=4 python -m features.run_dl3dv \
-        --vfm cambrian_s \
-        --subset all \
-        --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-        --out-root data/DL3DV/FEAT \
-        --model-path ckpt/Cambrian-S-7B \
-        --use-query-frame-indices \
-        --context-len 76 \
-        --query-idx-divisor 4 \
-        --output-layers 15 18 21 24
-
-WAN2.1-T2V-1.3B:
-CUDA_VISIBLE_DEVICES=4 python -m features.run_dl3dv \
-       --vfm wan \
-       --subset all \
-       --vfm-name wan-t2v-1.3b \
-       --model-id ckpt/Wan2.1-T2V-1.3B-Diffusers \
-       --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-       --out-root  data/DL3DV/FEAT \
-       --prompt "" \
-       --output-layers 20 \
-       --t 749
-
-DINO:
-python -m features.run_dl3dv \
-       --vfm dino \
-       --subset all \
-       --batch-size 64 \
-       --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-       --out-root data/DL3DV/FEAT \
-       --model-id ckpt/dinov2-large
-
-
-VJEPA:
-CUDA_VISIBLE_DEVICES=4 python -m features.run_dl3dv \
-       --vfm vjepa \
-       --subset all \
-       --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-       --out-root data/DL3DV/FEAT
-
-Opensora:
-CUDA_VISIBLE_DEVICES=7 python -m features.run_dl3dv \
-       --vfm opensora \
-       --subset all \
-       --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-       --out-root data/DL3DV/FEAT \
-       --t 0.25 \
-       --output-layers 20
-
-CogVideoX-I2V-5B:
-CUDA_VISIBLE_DEVICES=2 python -m features.run_dl3dv \
-       --vfm cogvideox \
-       --subset all \
-       --vfm-name cogvideox-i2v-5b \
-       --model-id ckpt/CogVideoX-5b-I2V \
-       --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-       --out-root data/DL3DV/FEAT \
-       --t 749 \
-       --output-layers 20
-
-Aether:
-CUDA_VISIBLE_DEVICES=0 python -m features.run_dl3dv \
-       --vfm aether \
-       --subset all \
-       --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-       --out-root data/DL3DV/FEAT \
-       --t 749 \
-       --output-layers 20 \
-       --task videogen
-
-Fast3R:
-python -m features.run_dl3dv \
-       --vfm f3r \
-       --subset all \
-       --model-id jedyang97/Fast3R_ViT_Large_512 \
-       --dl3dv-root data/DL3DV/DL3DV-ALL-960P \
-       --out-root data/DL3DV/FEAT \
-       --output-layers 24
+        --output-layers 22
 """
 
 import argparse
@@ -287,8 +92,8 @@ def main():
     # Dataset locations (all have reasonable defaults)
     parser.add_argument(
         "--dl3dv-root",
-        default="data/DL3DV/DL3DV-10K",
-        help="Root that contains DL3DV-10K/1K/…",
+        default="data/DL3DV/DL3DV-ALL-960P",
+        help="Root that contains DL3DV-ALL-960P/1K/...",
     )
     parser.add_argument(
         "--processed-root",
@@ -311,7 +116,7 @@ def main():
         "--subset", default="all", help="'1K', '2K', …, or 'all' (default)"
     )
 
-    # Optinally start from specified index and end at specified index
+    # Optionally start from specified index and end at specified index
     parser.add_argument(
         "--start",
         type=int,
@@ -329,7 +134,7 @@ def main():
     parser.add_argument(
         "--vfm",
         default="wan",
-        choices=["wan", "dino", "vjepa", "opensora", "cogvideox", "aether", "f3r", "internvl", "qwen3vl", "qwen25vl", "llavanextvideo", "cambrian_s", "videollama3", "llavaov15", "mimo"],
+        choices=["wan", "opensora", "cogvideox", "aether", "internvl", "qwen3vl", "qwen25vl"],
         help="Which extractor module to invoke",
     )
 

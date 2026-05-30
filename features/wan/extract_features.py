@@ -11,10 +11,10 @@ Each file holds a single key  ``"feat"``  whose value is shaped
 Typical wrapper call
 --------------------
 python -m features.wan.extract_features \
-       --scene-dir   data/DL3DV/DL3DV-ALL-960P/1K/0a1b7c20a92c43c6b8954b1ac909fb2f0fa8b2997b80604bc8bbec80a1cb2da3/images_4 \
-       --data-sft    data/DL3DV/DL3DV-processed/1K/0a1b7c20a92c43c6b8954b1ac909fb2f0fa8b2997b80604bc8bbec80a1cb2da3.sft \
-       --out-dir     output/features/wan/1K/0a1b7c20a92c43c6b8954b1ac909fb2f0fa8b2997b80604bc8bbec80a1cb2da3\
-       --model-id    ckpt/Wan2.1-T2V-1.3B-Diffusers \
+       --scene-dir   data/DL3DV/DL3DV-ALL-960P/1K/<hash>/images_4 \
+       --data-sft    data/DL3DV/DL3DV-processed/1K/<hash>.sft \
+       --out-dir     data/DL3DV/FEAT/wan-t2v-14b/1K/<hash> \
+       --model-id    ckpt/Wan2.1-T2V-14B-Diffusers \
        --prompt      "" \
        --t           749 \
        --output-layers 20
@@ -112,12 +112,12 @@ def main(argv: list[str] | None = None) -> None:
     # Wan-specific
     parser.add_argument("--model-id", default="Wan-AI/Wan2.1-T2V-1.3B-Diffusers")
     parser.add_argument("--prompt", default="")
-    parser.add_argument("--t", type=int, default=499, choices=range(0, 1001))
+    parser.add_argument("--t", type=int, default=749, choices=range(0, 1001))
     parser.add_argument(
         "--output-layers",
         nargs="+",
         type=int,
-        default=[15],
+        default=[20],
         help="Transformer block indices to extract",
     )
     parser.add_argument("--ensemble", type=int, default=1)

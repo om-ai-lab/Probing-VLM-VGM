@@ -11,11 +11,11 @@ Each file holds a single key  ``"feat"``  whose value is shaped
 Typical wrapper call
 --------------------
 python -m features.aether.extract_features \
-       --scene-dir   data/DL3DV/DL3DV-raw/DL3DV-10K/1K/<hash>/images_4 \
+       --scene-dir   data/DL3DV/DL3DV-ALL-960P/1K/<hash>/images_4 \
        --data-sft    data/DL3DV/DL3DV-processed/1K/<hash>.sft \
-       --out-dir     probing_vlm_vgm/features/aether/1K/<hash> \
-       --t           499 \
-       --output-layers 10 15 20 \
+       --out-dir     data/DL3DV/FEAT/aether/1K/<hash> \
+       --t           749 \
+       --output-layers 20 \
        --task        videogen
 """
 from __future__ import annotations
@@ -93,7 +93,7 @@ def forward_aether(
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
-        description="WAN feature extractor (one window, one file per layer)",
+        description="Aether feature extractor (one window, one file per layer)",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--scene-dir", required=True, help="Image folder")
@@ -102,12 +102,12 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--image-ext", default="png", help="Image file extension")
 
     # Aether-specific
-    parser.add_argument("--t", type=int, default=499, choices=range(0, 1001))
+    parser.add_argument("--t", type=int, default=749, choices=range(0, 1001))
     parser.add_argument(
         "--output-layers",
         nargs="+",
         type=int,
-        default=[15],
+        default=[20],
         help="Transformer block indices to extract",
     )
     parser.add_argument("--task", default="videogen", help="Task for Aether model")
@@ -205,14 +205,15 @@ def main(argv: list[str] | None = None) -> None:
         )
         save_file({"feat": feat.half()}, out_path)
         logging.debug(
-            f"[WAN] saved layer {layer_id} → {out_path} " f"shape {tuple(feat.shape)}"
+            f"[Aether] saved layer {layer_id} → {out_path} "
+            f"shape {tuple(feat.shape)}"
         )
         saved += 1
 
     if saved == 0:
         logging.error("[err] no layers saved - aborting")
     else:
-        logging.info(f"[WAN] done - {saved} layer files written to {out_dir}")
+        logging.info(f"[Aether] done - {saved} layer files written to {out_dir}")
 
 
 if __name__ == "__main__":

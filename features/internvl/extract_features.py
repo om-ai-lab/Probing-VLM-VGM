@@ -7,24 +7,26 @@ and saves them in safetensor format for downstream probe training.
 
 Usage:
     python -m features.internvl.extract_features \
-        --scene-dir data/DL3DV/DL3DV-ALL-480P/1K/{hash}/images_4 \
-        --data-sft data/DL3DV/DL3DV-processed/1K/{hash}.sft \
-        --out-dir data/DL3DV/FEAT/internvl/1K/{hash} \
+        --scene-dir data/DL3DV/DL3DV-ALL-960P/1K/<hash>/images_4 \
+        --data-sft data/DL3DV/DL3DV-processed/1K/<hash>.sft \
+        --out-dir data/DL3DV/FEAT/internvl3-8b/1K/<hash> \
         --model-path ckpt/InternVL3-8B \
         --model-type internvl3 \
-        --num-frames 16 \
-        --output-layers 7 14 21 28
+        --use-query-frame-indices \
+        --context-len 76 \
+        --query-idx-divisor 4 \
+        --output-layers 18
 
     python -m features.internvl.extract_features \
-        --scene-dir data/DL3DV/DL3DV-ALL-480P/1K/{hash}/images_4 \
-        --data-sft data/DL3DV/DL3DV-processed/1K/{hash}.sft \
-        --out-dir data/DL3DV/FEAT/internvl35-8b/1K/{hash} \
+        --scene-dir data/DL3DV/DL3DV-ALL-960P/1K/<hash>/images_4 \
+        --data-sft data/DL3DV/DL3DV-processed/1K/<hash>.sft \
+        --out-dir data/DL3DV/FEAT/internvl3.5-8b/1K/<hash> \
         --model-path ckpt/InternVL3_5-8B \
         --model-type internvl35 \
         --use-query-frame-indices \
         --context-len 76 \
         --query-idx-divisor 4 \
-        --output-layers 19 22 25 28 31
+        --output-layers 22
 """
 
 from __future__ import annotations

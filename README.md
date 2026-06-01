@@ -10,6 +10,8 @@ This repository provides a unified frozen-feature probing framework for comparin
 - 🧩 **Instance grouping**: which pixels across views belong to the same object instance?
 - 🌐 **3D geometry prediction**: how well do frozen features support point maps, depth, and camera motion?
 
+![Overview](assets/VLM-VGM-Overview-github.png)
+
 Our experiments show a clear complementarity: **VLMs are stronger at semantic and object-centric understanding**, while **VGMs provide more accessible dense geometry and camera-motion signals**. A simple feature-level fusion of VLM and VGM representations already improves both sides, suggesting a promising direction for stronger spatial-intelligence backbones.
 
 ![Overview](assets/results.png)
@@ -284,7 +286,6 @@ WANDB_MODE=offline CUDA_VISIBLE_DEVICES=0 bash scripts/eval_dl3dv.sh \
   --views 4 \
   --vfm qwen3-vl-8b \
   --vfm wan-t2v-14b \
-  --video-tss "[15,26]" \
   --task-name dl3dv-eval-main \
   --skip-done
 ```

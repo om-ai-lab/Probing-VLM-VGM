@@ -222,45 +222,6 @@ python -m features.run_scannet \
   --output-layers 22
 ```
 
-### Feature-Level Fusion
-
-The paper's fusion baseline is built offline after extracting both WAN2.1-T2V-14B
-and Qwen3-VL-8B features. We resize WAN features to the Qwen token grid, apply
-per-token LayerNorm to each branch independently, concatenate along channels,
-and save the fused features as `wan-t2v-14b-qwen3-vl-8b-lnconcat`.
-
-```bash
-# DL3DV fusion features for 3D geometry.
-python scripts/build_dl3dv_wan_t2v_14b_qwen3_vl_8b_lnconcat.py \
-  --processed-root data/DL3DV/DL3DV-processed \
-  --wan-feat-root data/DL3DV/FEAT \
-  --qwen-feat-root data/DL3DV/FEAT \
-  --out-feat-root data/DL3DV/FEAT \
-  --splits train val
-
-# ScanNet fusion features for semantic tagging and instance grouping.
-python scripts/build_scannet_wan_t2v_14b_qwen3_vl_8b_lnconcat.py \
-  --processed-root data/ScanNet/ScanNet-processed \
-  --feat-root data/ScanNet/FEAT \
-  --splits train val
-```
-
-After this step, train the fusion probes with the corresponding configs:
-
-```bash
-python -m probing_vlm_vgm.train \
-  experiment=dl3dv/wan-t2v-14b-qwen3-vl-8b-lnconcat \
-  job_name=wan-t2v-14b-qwen3-vl-8b-lnconcat
-
-python -m probing_vlm_vgm.train \
-  experiment=scannet/wan-t2v-14b-qwen3-vl-8b-lnconcat \
-  job_name=wan-t2v-14b-qwen3-vl-8b-lnconcat
-
-python -m probing_vlm_vgm.train \
-  experiment=scannet_tagging/wan-t2v-14b-qwen3-vl-8b-lnconcat \
-  job_name=wan-t2v-14b-qwen3-vl-8b-lnconcat
-```
-
 Different feature extractors may require different checkpoint paths, input resolutions, or layer/timestep choices. See the docstring at the top of each `features/*/extract_features.py` file for model-specific examples.
 
 
@@ -447,16 +408,45 @@ python -m probing_vlm_vgm.train \
 
 ## 🔗 Feature Fusion
 
-We include configs for simple VLM+VGM feature-level fusion:
+The paper's fusion baseline is built offline after extracting both WAN2.1-T2V-14B
+and Qwen3-VL-8B features. We resize WAN features to the Qwen token grid, apply
+per-token LayerNorm to each branch independently, concatenate along channels,
+and save the fused features as `wan-t2v-14b-qwen3-vl-8b-lnconcat`.
 
 ```bash
-python -m probing_vlm_vgm.train \
-  experiment=dl3dv/wan-t2v-14b-qwen3-vl-8b-lnconcat \
-  job_name=wan-t2v-14b_qwen3-vl-8b_fusion
+# DL3DV fusion features for 3D geometry.
+python scripts/build_dl3dv_wan_t2v_14b_qwen3_vl_8b_lnconcat.py \
+  --processed-root data/DL3DV/DL3DV-processed \
+  --wan-feat-root data/DL3DV/FEAT \
+  --qwen-feat-root data/DL3DV/FEAT \
+  --out-feat-root data/DL3DV/FEAT \
+  --splits train val
+
+# ScanNet fusion features for semantic tagging and instance grouping.
+python scripts/build_scannet_wan_t2v_14b_qwen3_vl_8b_lnconcat.py \
+  --processed-root data/ScanNet/ScanNet-processed \
+  --feat-root data/ScanNet/FEAT \
+  --splits train val
 ```
 
-The fusion baseline normalizes frozen features from each model and concatenates them along the channel dimension before feeding them to the same probe.
+After this step, train the fusion probes with the corresponding configs:
 
+```bash
+# 3D geometry fusion probe.
+python -m probing_vlm_vgm.train \
+  experiment=dl3dv/wan-t2v-14b-qwen3-vl-8b-lnconcat \
+  job_name=wan-t2v-14b-qwen3-vl-8b-lnconcat
+
+# Instance-grouping fusion probe.
+python -m probing_vlm_vgm.train \
+  experiment=scannet/wan-t2v-14b-qwen3-vl-8b-lnconcat \
+  job_name=wan-t2v-14b-qwen3-vl-8b-lnconcat
+
+# Semantic-tagging fusion probe.
+python -m probing_vlm_vgm.train \
+  experiment=scannet_tagging/wan-t2v-14b-qwen3-vl-8b-lnconcat \
+  job_name=wan-t2v-14b-qwen3-vl-8b-lnconcat
+```
 
 
 

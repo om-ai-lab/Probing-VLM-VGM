@@ -243,10 +243,57 @@ python -m probing_vlm_vgm.train \
 
 ### Instance Grouping
 
+The following examples reproduce the ScanNet instance-grouping probe for
+Qwen3-VL-8B and WAN2.1-T2V-14B. The default configs use the paper settings:
+8 sampled views, batch size 8, 40 epochs, Qwen3-VL layer 22, and WAN layer 18
+at timestep 749.
+
 ```bash
-python -m probing_vlm_vgm.train \
+# Qwen3-VL-8B instance-grouping probe.
+CUDA_VISIBLE_DEVICES=0,1 python -m probing_vlm_vgm.train \
+  experiment=scannet/qwen3-vl-8b \
+  job_name=qwen3-vl-8b \
+  trainer.devices=2
+
+# WAN2.1-T2V-14B instance-grouping probe.
+CUDA_VISIBLE_DEVICES=0,1 python -m probing_vlm_vgm.train \
   experiment=scannet/wan-t2v-14b \
-  job_name=wan-t2v-14b
+  job_name=wan-t2v-14b \
+  trainer.devices=2
+```
+
+The resulting checkpoints are saved under:
+
+```text
+logs/scannet-instance/runs/
+  vlm_scannet-instance_qwen3-vl-8b/
+  vg_scannet-instance_wan-t2v-14b/
+```
+
+Evaluate the trained instance probes with sharded HDBSCAN clustering:
+
+```bash
+# Add --dry-run first if you want to inspect the selected runs.
+WANDB_MODE=offline CUDA_VISIBLE_DEVICES=0,1 python scripts/eval_scannet_instance_sharded.py \
+  --views 8 \
+  --gpus 0,1 \
+  --vfm qwen3-vl-8b \
+  --vfm wan-t2v-14b \
+  --output-root logs/scannet-instance-eval-sharded \
+  --hdbscan-workers 8 \
+  --num-workers 2 \
+  --skip-done
+```
+
+Evaluation writes new runs to `logs/scannet-instance-eval-sharded/runs/`. The
+main instance-grouping metrics can then be exported as a CSV:
+
+```bash
+python scripts/parse_results.py \
+  --groups scannet-instance-eval-sharded \
+  --runs "vlm_scannet-instance-eval_qwen3-vl-8b;vg_scannet-instance-eval_wan-t2v-14b" \
+  --metrics "val/t_miou,val/t_sr" \
+  --joint-name scannet-instance-main
 ```
 
 ### 3D Geometry
@@ -334,14 +381,11 @@ The fusion baseline normalizes frozen features from each model and concatenates 
 If you find this project useful, please cite:
 
 ```bibtex
-@misc{shen2026probingvlmvgm,
-      title={Which Pretraining Paradigm Better Serves Spatial Intelligence? An Empirical Comparison of Vision-Language and Video Generation Models}, 
-      author={Haozhan Shen and Tiancheng Zhao and Kangjia Zhao and Jianwei Yin},
-      year={2026},
-      eprint={2605.28132},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2605.28132}, 
+@article{shen2026pretraining,
+  title={Which Pretraining Paradigm Better Serves Spatial Intelligence? An Empirical Comparison of Vision-Language and Video Generation Models},
+  author={Shen, Haozhan and Zhao, Tiancheng and Zhao, Kangjia and Yin, Jianwei},
+  journal={arXiv preprint arXiv:2605.28132},
+  year={2026}
 }
 ```
 

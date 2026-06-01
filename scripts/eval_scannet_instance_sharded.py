@@ -598,7 +598,9 @@ def _dataloader_worker_init(_: int) -> None:
 
 def load_probe_from_checkpoint(probe_cfg: Dict[str, Any], ckpt_path: str, device: torch.device):
     probe = instantiate(OmegaConf.create(probe_cfg))
-    ckpt = torch.load(ckpt_path, map_location="cpu")
+    # Lightning checkpoints include Hydra/OmegaConf objects, which PyTorch 2.6
+    # rejects under the default weights_only=True loader.
+    ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
     state_dict = ckpt.get("state_dict", ckpt)
     probe_state = {
         key[len("probe."):]: value

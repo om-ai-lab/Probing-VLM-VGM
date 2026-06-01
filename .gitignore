@@ -75,4 +75,4 @@ features/vjepa/*
 !features/vjepa/vjepautils.py
 Depth-Anything-3/
 cambrian-s/
-scripts/
+scripts/__pycache__/

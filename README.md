@@ -249,13 +249,61 @@ python -m probing_vlm_vgm.train \
 
 ### 3D Geometry
 
+The following examples reproduce the DL3DV 3D-geometry probe for
+Qwen3-VL-8B and WAN2.1-T2V-14B. The default configs use the paper settings:
+4 sampled views, batch size 10, 60 epochs, Qwen3-VL layer 22, and WAN layer 20
+at timestep 749.
+
 ```bash
-python -m probing_vlm_vgm.train \
+# Qwen3-VL-8B 3D probe.
+CUDA_VISIBLE_DEVICES=0,1 python -m probing_vlm_vgm.train \
+  experiment=dl3dv/qwen3-vl-8b \
+  job_name=qwen3-vl-8b \
+  trainer.devices=2
+
+# WAN2.1-T2V-14B 3D probe.
+CUDA_VISIBLE_DEVICES=0,1 python -m probing_vlm_vgm.train \
   experiment=dl3dv/wan-t2v-14b \
-  job_name=wan-t2v-14b
+  job_name=wan-t2v-14b \
+  trainer.devices=2
 ```
 
-Hydra overrides can be used to change paths, feature layers, batch sizes, or probe settings:
+The resulting checkpoints are saved under:
+
+```text
+logs/dl3dv/runs/
+  vlm_dl3dv_qwen3-vl-8b/
+  vg_dl3dv_wan-t2v-14b/
+```
+
+Evaluate the trained 3D probes on the DL3DV validation split:
+
+```bash
+# Add --dry-run first if you want to inspect the expanded commands.
+WANDB_MODE=offline CUDA_VISIBLE_DEVICES=0 bash scripts/eval_dl3dv.sh \
+  --views 4 \
+  --vfm qwen3-vl-8b \
+  --vfm wan-t2v-14b \
+  --video-tss "[15,26]" \
+  --task-name dl3dv-eval-main \
+  --skip-done
+```
+
+Evaluation writes new runs to `logs/dl3dv-eval-main/runs/`. The main 3D
+metrics can then be exported as a CSV:
+
+```bash
+python scripts/parse_results.py \
+  --groups dl3dv-eval-main \
+  --runs "vlm_dl3dv-eval-main_qwen3-vl-8b;vg_dl3dv-eval-main_wan-t2v-14b" \
+  --metrics "val/pmap_mse_aligned,val/depth_abs_rel,val/Auc_30" \
+  --joint-name dl3dv-main
+```
+
+The CSV is written to `logs/metrics/dl3dv-eval-main/dl3dv-main.csv`.
+
+Hydra overrides can be used to change paths, feature layers, batch sizes, or
+probe settings:
 
 ```bash
 python -m probing_vlm_vgm.train \

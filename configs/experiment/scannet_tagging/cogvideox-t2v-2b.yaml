@@ -17,7 +17,7 @@ num_classes: 20
 target_spatial_size: [15,22]
 
 paths:
-  run_folder_name: vg_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+  run_folder_name: vg_${task_name}_${job_name}
 
 # CogVideoX-2B T2V — DIFT-style features at t=749. The extractor saves T2V
 # features as feature_t2v_2b_t{t}_layer{layer}.sft. Channel = 30 heads * 64.
@@ -38,7 +38,7 @@ data:
 
 logger:
   wandb:
-    name: vg_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+    name: vg_${task_name}_${job_name}
     group: ${task_name}
 
 model:

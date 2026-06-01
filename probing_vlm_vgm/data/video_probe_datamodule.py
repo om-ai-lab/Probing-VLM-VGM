@@ -61,6 +61,8 @@ def get_data_loader(
     # stage to local NVMe instead of relying on a fat prefetch queue.
     # Only valid when num_workers > 0; PyTorch raises if set with num_workers=0.
     extra = {"prefetch_factor": 2} if num_workers > 0 else {}
+    if num_workers > 0 and multiprocessing_context is not None:
+        extra["multiprocessing_context"] = multiprocessing_context
     data_loader = torch.utils.data.DataLoader(
         dataset,
         sampler=sampler,
@@ -69,7 +71,6 @@ def get_data_loader(
         pin_memory=pin_mem,
         drop_last=drop_last,
         persistent_workers=persistent_workers,
-        multiprocessing_context=multiprocessing_context,
         **extra,
     )
 

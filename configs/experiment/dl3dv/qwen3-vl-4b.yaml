@@ -24,7 +24,7 @@ gt_num_frames: 4
 batch_size: 10
 
 paths:
-  run_folder_name: vlm_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}
+  run_folder_name: vlm_${task_name}_${job_name}
 
 # Feature configuration
 # Layers: 19, 21, 23, 25, 27, 29, 31, 33, 35
@@ -43,7 +43,7 @@ data:
 
 logger:
   wandb:
-    name: vlm_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}
+    name: vlm_${task_name}_${job_name}
     group: ${task_name}
 
 model:

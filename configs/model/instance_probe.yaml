@@ -46,8 +46,8 @@ hdbscan_min_cluster_size: 30
 hdbscan_min_samples: 5
 # PCA-reduce features to this dim before HDBSCAN. The head outputs D=32 but
 # the kd-tree inside HDBSCAN degrades above D≈16, so projecting to 8 gives
-# ~2x wall-clock speedup at <0.002 t_miou drop (verified by
-# scripts/compare_hdbscan_pca.py on Qwen3VL + OpenSora over 50 val scenes).
+# ~2x wall-clock speedup with negligible metric changes in our validation
+# checks on Qwen3VL and OpenSora.
 # Set to null to disable and cluster at native D.
 hdbscan_pca_dim: 8
 eval_iou_thresh: 0.5
@@ -57,8 +57,7 @@ weight_metrics_by_instances: false
 # Parallel eval: dispatch per-scene HDBSCAN+T-mIoU to a persistent
 # ProcessPoolExecutor (forkserver). 0 = sync (current behaviour); 16 is a
 # sweet spot for a 96-core box with 8 dataloader workers. Final aggregate
-# metrics are deterministic and identical to the sync path within fp
-# rounding (verified by scripts/test_parallel_eval.py).
+# metrics are deterministic and identical to the sync path within fp rounding.
 num_eval_workers: 16
 
 # Test-time per-scene visualization. Empty list = disabled (zero overhead).

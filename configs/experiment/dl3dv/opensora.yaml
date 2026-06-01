@@ -27,7 +27,7 @@ batch_size: 10
 target_spatial_size: [15,26]
 
 paths:
-  run_folder_name: vg_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+  run_folder_name: vg_${task_name}_${job_name}
 
 feat_postfix: _t0.25_layer20
 data:
@@ -43,7 +43,7 @@ data:
 
 logger:
   wandb:
-    name: vg_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+    name: vg_${task_name}_${job_name}
     group: ${task_name}
 
 model:

@@ -85,8 +85,8 @@ class ScanNetInstanceDataset(VFMFeatureLoaderMixin, EasyDataset):
         # for opensora (3072-dim hidden) — shrinks every downstream step
         # (worker contiguous, shared-mem transfer, pin_memory, H2D, GPU
         # permute+pool) proportionally. ~60 ms/sample CPU pool is hidden by
-        # 8-worker parallelism. Real training throughput 2.04x on opensora
-        # train split (scripts/test_pool_in_worker.py). Default True since
+        # 8-worker parallelism and improves throughput on large VGM features.
+        # Default True since
         # the model.forward's (H, W) != target_hw branch makes pre-pooled
         # input a GPU-side no-op — no caller has to change anything.
         self.pool_in_worker = bool(pool_in_worker)

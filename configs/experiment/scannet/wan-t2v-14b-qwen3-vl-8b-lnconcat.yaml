@@ -16,7 +16,7 @@ batch_size: 8
 target_spatial_size: null
 
 paths:
-  run_folder_name: fusion_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+  run_folder_name: fusion_${task_name}_${job_name}
 
 # Offline branch-LN concat of WAN-14B-T2V layer18 and Qwen3VL-8B layer22.
 # Feature shape: (T, 17, 30, 5120 + 4096) = (T, 17, 30, 9216).
@@ -37,7 +37,7 @@ data:
 
 logger:
   wandb:
-    name: fusion_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+    name: fusion_${task_name}_${job_name}
     group: ${task_name}
 
 model:

@@ -16,7 +16,7 @@ batch_size: 8
 target_spatial_size: null
 
 paths:
-  run_folder_name: vlm_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+  run_folder_name: vlm_${task_name}_${job_name}
 
 # InternVL3 8B layer18 single-layer feat, C = 3584
 vfm_name: internvl3-8b
@@ -36,7 +36,7 @@ data:
 
 logger:
   wandb:
-    name: vlm_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+    name: vlm_${task_name}_${job_name}
     group: ${task_name}
 
 model:

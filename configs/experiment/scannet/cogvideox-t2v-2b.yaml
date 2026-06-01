@@ -16,7 +16,7 @@ batch_size: 8
 target_spatial_size: [15,22]
 
 paths:
-  run_folder_name: vg_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+  run_folder_name: vg_${task_name}_${job_name}
 
 vfm_name: cogvideox-t2v-2b
 feat_postfix: _t2v_2b_t749_layer18
@@ -35,7 +35,7 @@ data:
 
 logger:
   wandb:
-    name: vg_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}_${target_spatial_size}
+    name: vg_${task_name}_${job_name}
     group: ${task_name}
 
 model:

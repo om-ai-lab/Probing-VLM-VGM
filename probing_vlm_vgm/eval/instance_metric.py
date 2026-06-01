@@ -53,9 +53,8 @@ def hdbscan_cluster(
             clustering. HDBSCAN's kd-tree degrades to O(N²) above D≈16, so
             for our MVC-trained 32-dim embeddings (whose discriminative
             structure lives in a much lower-rank subspace) projecting to
-            ~8 dims gives ~2x wall-clock speedup at <0.002 t_miou drop —
-            verified via scripts/compare_hdbscan_pca.py on Qwen3VL
-            (Δ=-0.0001 over 50 scenes) and OpenSora (Δ=-0.0018).
+            ~8 dims gives a substantial wall-clock speedup with negligible
+            metric changes in our validation checks.
 
     Returns:
         labels: (N,) int array with cluster IDs; -1 denotes HDBSCAN noise.

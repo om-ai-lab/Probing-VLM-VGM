@@ -1,7 +1,9 @@
 # --------- lightning --------- #
+setuptools<81
 lightning>=2.5.0
 lightning-bolts
 lightning-utilities
+typeguard
 torchmetrics
 torchinfo
 

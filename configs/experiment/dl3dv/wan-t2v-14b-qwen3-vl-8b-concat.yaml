@@ -13,7 +13,7 @@ gt_num_frames: 4
 batch_size: 10
 
 paths:
-  run_folder_name: fusion_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}
+  run_folder_name: fusion_${task_name}_${job_name}
 
 # Offline concat of WAN-14B-T2V layer20 and Qwen3VL-8B layer22.
 # Feature shape: (20, Hq, Wq, 5120 + 4096) = (20, Hq, Wq, 9216).
@@ -32,7 +32,7 @@ data:
 
 logger:
   wandb:
-    name: fusion_${task_name}_${job_name}_views${gt_num_frames}_bs${batch_size}
+    name: fusion_${task_name}_${job_name}
     group: ${task_name}
 
 model:

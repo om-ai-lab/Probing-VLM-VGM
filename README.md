@@ -455,7 +455,7 @@ python -m probing_vlm_vgm.train \
 If you find this project useful, please cite:
 
 ```bibtex
-@article{shen2026pretraining,
+@article{shen2026probingvlmvgm,
   title={Which Pretraining Paradigm Better Serves Spatial Intelligence? An Empirical Comparison of Vision-Language and Video Generation Models},
   author={Shen, Haozhan and Zhao, Tiancheng and Zhao, Kangjia and Yin, Jianwei},
   journal={arXiv preprint arXiv:2605.28132},

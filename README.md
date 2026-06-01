@@ -222,6 +222,45 @@ python -m features.run_scannet \
   --output-layers 22
 ```
 
+### Feature-Level Fusion
+
+The paper's fusion baseline is built offline after extracting both WAN2.1-T2V-14B
+and Qwen3-VL-8B features. We resize WAN features to the Qwen token grid, apply
+per-token LayerNorm to each branch independently, concatenate along channels,
+and save the fused features as `wan-t2v-14b-qwen3-vl-8b-lnconcat`.
+
+```bash
+# DL3DV fusion features for 3D geometry.
+python scripts/build_dl3dv_wan_t2v_14b_qwen3_vl_8b_lnconcat.py \
+  --processed-root data/DL3DV/DL3DV-processed \
+  --wan-feat-root data/DL3DV/FEAT \
+  --qwen-feat-root data/DL3DV/FEAT \
+  --out-feat-root data/DL3DV/FEAT \
+  --splits train val
+
+# ScanNet fusion features for semantic tagging and instance grouping.
+python scripts/build_scannet_wan_t2v_14b_qwen3_vl_8b_lnconcat.py \
+  --processed-root data/ScanNet/ScanNet-processed \
+  --feat-root data/ScanNet/FEAT \
+  --splits train val
+```
+
+After this step, train the fusion probes with the corresponding configs:
+
+```bash
+python -m probing_vlm_vgm.train \
+  experiment=dl3dv/wan-t2v-14b-qwen3-vl-8b-lnconcat \
+  job_name=wan-t2v-14b-qwen3-vl-8b-lnconcat
+
+python -m probing_vlm_vgm.train \
+  experiment=scannet/wan-t2v-14b-qwen3-vl-8b-lnconcat \
+  job_name=wan-t2v-14b-qwen3-vl-8b-lnconcat
+
+python -m probing_vlm_vgm.train \
+  experiment=scannet_tagging/wan-t2v-14b-qwen3-vl-8b-lnconcat \
+  job_name=wan-t2v-14b-qwen3-vl-8b-lnconcat
+```
+
 Different feature extractors may require different checkpoint paths, input resolutions, or layer/timestep choices. See the docstring at the top of each `features/*/extract_features.py` file for model-specific examples.
 
 
@@ -235,10 +274,55 @@ python -m probing_vlm_vgm.train experiment=<task>/<model> job_name=<run_name>
 
 ### Semantic Tagging
 
+The following examples reproduce the ScanNet semantic-tagging probe for
+Qwen3-VL-8B and WAN2.1-T2V-14B. The default configs use the paper settings:
+8 sampled views, batch size 8, 10 epochs, ScanNet20 labels, Qwen3-VL layer 22,
+and WAN layer 18 at timestep 749. Semantic tagging also needs the CLIP text
+initialization file `data/ScanNet/clip_class_embeds_20_vitl14.npy`, which can
+be built during ScanNet preprocessing.
+
 ```bash
-python -m probing_vlm_vgm.train \
+# Qwen3-VL-8B semantic-tagging probe.
+CUDA_VISIBLE_DEVICES=0 python -m probing_vlm_vgm.train \
   experiment=scannet_tagging/qwen3-vl-8b \
-  job_name=qwen3-vl-8b
+  job_name=qwen3-vl-8b \
+  trainer.devices=1
+
+# WAN2.1-T2V-14B semantic-tagging probe.
+CUDA_VISIBLE_DEVICES=0 python -m probing_vlm_vgm.train \
+  experiment=scannet_tagging/wan-t2v-14b \
+  job_name=wan-t2v-14b \
+  trainer.devices=1
+```
+
+The resulting checkpoints are saved under:
+
+```text
+logs/scannet-tagging/runs/
+  vlm_scannet-tagging_qwen3-vl-8b/
+  vg_scannet-tagging_wan-t2v-14b/
+```
+
+Evaluate the trained semantic-tagging probes:
+
+```bash
+# Add --dry-run first if you want to inspect the selected runs.
+WANDB_MODE=offline CUDA_VISIBLE_DEVICES=0 bash scripts/eval_scannet_tagging.sh \
+  --views 8 \
+  --vfm qwen3-vl-8b \
+  --vfm wan-t2v-14b \
+  --skip-done
+```
+
+Evaluation writes new runs to `logs/scannet-tagging-eval/runs/`. The main
+semantic-tagging metrics can then be exported as a CSV:
+
+```bash
+python scripts/parse_results.py \
+  --groups scannet-tagging-eval \
+  --runs "vlm_scannet-tagging-eval_qwen3-vl-8b;vg_scannet-tagging-eval_wan-t2v-14b" \
+  --metrics "val/AP_mid,val/mAP,val/Mid_Ratio" \
+  --joint-name scannet-tagging-main
 ```
 
 ### Instance Grouping
